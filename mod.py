@@ -20,6 +20,8 @@ class Mod:
         self.version: str = ""
         self.author: str = ""
         self.description: str = ""
+        self.requires: list[str] = []
+        self.references: list[str] = []
 
         self._stream: bytes = b""
         self._head = 0
@@ -46,14 +48,14 @@ class Mod:
         if ftype != FILE_TYPE_MOD and ftype != FILE_TYPE_MMOD:
             raise ValueError(f"Invalid file type: {ftype}, expected {FILE_TYPE_MOD} or {FILE_TYPE_MMOD}")
         
-        header_end = 0
         if ftype == FILE_TYPE_MMOD:
-            header_end = self.read_32int() + self._head
+            self.read_32int()   # merged mods also contain another 32-bit integer to tell us where the header ends
         
         self.version = self.read_32int()
         self.author = self.read_string()
         self.description = self.read_string()
-
+        self.requires = self.read_strings()
+        self.references = self.read_strings()
 
     def read_32int(self):
         start = self._head
@@ -67,6 +69,11 @@ class Mod:
         start = self._head
         self._head += length
         return self._stream[start:self._head].decode('utf-8', errors='ignore')
+    
+    def read_strings(self):
+        strings = self.read_string().split(',')
+        # Remove empty strings
+        return [s for s in strings if s]
 
 
     
@@ -81,6 +88,10 @@ if __name__ == "__main__":
         try:
             mod = Mod(mod_path)
             print(mod)
+            for ref in mod.references:
+                print(f"Reference: {ref}")
+            for req in mod.requires:
+                print(f"Requires: {req}")
         except FileNotFoundError as e:
             print(e)
         except Exception as e:
