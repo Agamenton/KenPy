@@ -22,14 +22,11 @@ def get_steam_kenshi_folder():
     
     library_folders = get_steam_library_folders(steam_path)
     
-    if not library_folders:
-        print("No Steam library folders found.")
-        return result
-    
-    for library in library_folders:
-        potential_path = os.path.join(library, "steamapps", "common", KENSHI_STEAM_NAME)
-        if os.path.isdir(potential_path):
-            result = potential_path
+    steam_games = get_installed_steam_games(library_folders)
+
+    for game in steam_games:
+        if str(game.appid) == KENSHI_WORKSHOP_ID:
+            result = game.install_dir
             break
     
     return result
