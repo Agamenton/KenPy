@@ -16,43 +16,72 @@ class Mod:
         if not self.path.exists():
             raise FileNotFoundError(f"Mod path does not exist: {self.path}")
         
-        self.name: str = ""
+        self.name: str = self.path.stem
         self.version: str = ""
         self.author: str = ""
         self.description: str = ""
-        self.mod_id: int = -1
 
         self._stream: bytes = b""
+        self._head = 0
         with open(self.path, 'rb') as f:
             self._stream = f.read()
 
         self._parse_mod_info()
 
     def __str__(self):
-        return (f"Mod ID: {self.mod_id}\n"
-                f"Name: {self.name}\n"
+        return (f"Name: {self.name}\n"
                 f"Version: {self.version}\n"
                 f"Author: {self.author}\n"
                 f"Description: {self.description}")
     
     def __repr__(self):
-        return f"Mod({self.mod_id}, '{self.name}', '{self.version}', '{self.author}')"
+        return f"Mod('{self.name}', '{self.version}', '{self.author}')"
     
     def _parse_mod_info(self):
         """Parse the mod information from the binary stream."""
         if not self._stream:
             raise ValueError("Mod stream is empty")
-        # read type
-        # read header data
         
+        ftype = self.read_32int()
+        if ftype != FILE_TYPE_MOD and ftype != FILE_TYPE_MMOD:
+            raise ValueError(f"Invalid file type: {ftype}, expected {FILE_TYPE_MOD} or {FILE_TYPE_MMOD}")
+        
+        header_end = 0
+        if ftype == FILE_TYPE_MMOD:
+            header_end = self.read_32int() + self._head
+        
+        self.version = self.read_32int()
+        self.author = self.read_string()
+        self.description = self.read_string()
+
+
+    def read_32int(self):
+        start = self._head
+        self._head += 4
+        return int.from_bytes(self._stream[start:self._head], 'little')
+    
+    def read_string(self):
+        length = self.read_32int()
+        if length <= 0:
+            return ""
+        start = self._head
+        self._head += length
+        return self._stream[start:self._head].decode('utf-8', errors='ignore')
+
+
     
 if __name__ == "__main__":
     # Example usage
-    mod_path = "./example_mods/locals/0_Canine_Variation/0_Canine_Variation.mod"
-    try:
-        mod = Mod(mod_path)
-        print(mod)
-    except FileNotFoundError as e:
-        print(e)
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    example_mods_path = "./example_mods"
+    # find all .mod files recursively in the example_mods directory
+    all_mod_files = list(Path(example_mods_path).rglob("*.mod"))
+    for mod_path in all_mod_files:
+        print("**" * 20)
+        print(f"Processing mod file: {mod_path}")
+        try:
+            mod = Mod(mod_path)
+            print(mod)
+        except FileNotFoundError as e:
+            print(e)
+        except Exception as e:
+            print(f"An error occurred: {e}")
