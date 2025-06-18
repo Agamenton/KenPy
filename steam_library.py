@@ -3,6 +3,10 @@ import platform
 import vdf
 
 
+KENSHI_WORKSHOP_ID = "233860" # Steam Workshop ID for Kenshi
+KENSHI_STEAM_NAME = "Kenshi"
+
+
 class SteamGame:
     def __init__(self, appid, name, install_dir):
         self.appid = appid

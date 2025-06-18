@@ -1,11 +1,8 @@
 import os
 from pathlib import Path
 
-from steam_library import get_steam_install_path, get_steam_library_folders, get_installed_steam_games
+from steam_library import get_steam_install_path, get_steam_library_folders, get_installed_steam_games, KENSHI_WORKSHOP_ID, KENSHI_STEAM_NAME
 from config import Config
-
-KENSHI_WORKSHOP_ID = "233860" # Steam Workshop ID for Kenshi
-KENSHI_STEAM_NAME = "Kenshi"
 
 
 def get_steam_kenshi_folder():
@@ -30,6 +27,7 @@ def get_steam_kenshi_folder():
             break
     
     return result
+
 
 def get_kenshi_folder_from_config():
     """
@@ -59,7 +57,7 @@ def find_kenshi_folder():
 def main():
     ...
     kenshi_folder = find_kenshi_folder()
-    if not kenshi_folder:
+    if kenshi_folder is None:
         ...
         # TODO: display a dialog to let the user select the Kenshi installation folder
         #  and save it to the config
