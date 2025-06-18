@@ -17,6 +17,11 @@ class Mod:
         if not self.path.exists():
             raise FileNotFoundError(f"Mod path does not exist: {self.path}")
         
+        preview_img_name = f"_{self.path.stem}.img" # DEV-NOTE: it seems to always be .img file, but I guess other formats are possible
+        self.preview_img_path = self.path.parent / preview_img_name
+        if not self.preview_img_path.exists():
+            self.preview_img_path = None
+        
         self.name: str = self.path.stem
         self.version: str = ""
         self.author: str = ""
