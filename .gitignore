@@ -1,2 +1,5 @@
 example_mods/
 .venv/
+__pycache__/
+*.pyc
+*.pyo
