@@ -12,7 +12,19 @@ CFG_KENSHI_DIR = "KENSHI_DIR"
 
 
 class Config:
+    def __new__(cls):
+        """
+        Ensure that Config is a singleton.
+        """
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(Config, cls).__new__(cls)
+        return cls.instance
+
     def __init__(self):
+        """
+        Initialize the Config instance.
+        Load the configuration from the file or create a new one if it doesn't exist.
+        """
         self._config_path = self.get_config_file_path(APP_NAME, CFG_FILE)
         self._config = self._load_config()
 
