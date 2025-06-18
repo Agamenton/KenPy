@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import datetime
 
 # .save, .platoon, .zone
 FILE_TYPE_DATA = 15
@@ -22,6 +23,10 @@ class Mod:
         self.description: str = ""
         self.requires: list[str] = []
         self.references: list[str] = []
+        try:
+            self.date_added: datetime = datetime.fromtimestamp(self.path.stat().st_birthtime)   # may 
+        except AttributeError:
+            self.date_added = datetime.fromtimestamp(self.path.stat().st_mtime)
 
         self._stream: bytes = b""
         self._head = 0
@@ -32,6 +37,7 @@ class Mod:
 
     def __str__(self):
         return (f"Name: {self.name}\n"
+                f"Date Added: {self.date_added.strftime('%Y-%m-%d %H:%M:%S')}\n"
                 f"Version: {self.version}\n"
                 f"Author: {self.author}\n"
                 f"Description: {self.description}")
@@ -78,7 +84,7 @@ class Mod:
 
     
 if __name__ == "__main__":
-    # Example usage
+    # tests
     example_mods_path = "./example_mods"
     # find all .mod files recursively in the example_mods directory
     all_mod_files = list(Path(example_mods_path).rglob("*.mod"))
