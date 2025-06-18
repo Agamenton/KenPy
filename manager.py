@@ -36,6 +36,13 @@ class Manager:
     
     def __repr__(self):
         return f"Manager('{self.kenshi_dir}', {len(self.all_mods)}, {len(self.active_mods)})"
+    
+    def save_active_mods(self):
+        """
+        Save the active mods to the active_mods_file.
+        """
+        with open(self.active_mods_file, 'w') as f:
+            f.write('\n'.join(self.active_mods))
 
 
 if __name__ == "__main__":
