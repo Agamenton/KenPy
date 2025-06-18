@@ -138,6 +138,32 @@ def get_installed_steam_games(library_paths):
     return installed_games
 
 
+def get_workshop_of(appid):
+    """
+    Return the path to the Steam Workshop folder for a given appid.
+    """
+    appid = str(appid)
+
+    steam_path = get_steam_install_path()
+    if not steam_path:
+        print("Steam installation path could not be determined.")
+        return None
+    
+    library_folders = get_steam_library_folders(steam_path)
+    if not library_folders:
+        print("No Steam library folders found.")
+        return None
+    
+    workshop_path = None
+    for library in library_folders:
+        potential_path = os.path.join(library, "workshop", "content", appid)
+        if os.path.isdir(potential_path):
+            workshop_path = potential_path
+            break
+
+    return workshop_path
+    
+
 if __name__ == "__main__":
     steam_path = get_steam_install_path()
 
