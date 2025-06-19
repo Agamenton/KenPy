@@ -1,8 +1,11 @@
 import os
 from pathlib import Path
+from tkinter import Tk
 
 from steam_library import get_steam_install_path, get_steam_library_folders, get_installed_steam_games, KENSHI_WORKSHOP_ID, KENSHI_STEAM_NAME
 from config import Config
+from manager import Manager
+from gui import start_gui
 
 
 def get_steam_kenshi_folder():
@@ -39,7 +42,6 @@ def get_kenshi_folder_from_config():
     if kenshi_dir and os.path.isdir(kenshi_dir):
         return kenshi_dir
     
-    print("Kenshi directory not set in configuration or does not exist.")
     return None
 
 
@@ -61,11 +63,12 @@ def main():
         ...
         # TODO: display a dialog to let the user select the Kenshi installation folder
         #  and save it to the config
+    manager = Manager(kenshi_folder)
     # discover local mods
     # discover workshop mods
     # instantiate Mod objects
     # start GUI
-    
+    start_gui(manager)
 
 if __name__ == "__main__":
     main()
