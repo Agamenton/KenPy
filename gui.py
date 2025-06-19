@@ -23,30 +23,47 @@ def start_gui(manager: Manager):
     
     gui = Gui(root, manager)
     root.protocol("WM_DELETE_WINDOW", root.quit)
-    root.geometry("800x600")
+    root.geometry("1200x600")
+    root.minsize(800, 400)
     root.resizable(True, True)
 
     root.mainloop()
+
 
 class Gui:
     def __init__(self, root: Tk, manager: Manager):
         self.root = root
         self.manager = manager
 
+        # Main frame setup
         self.frame = Frame(self.root)
         self.frame.pack(fill=BOTH, expand=True)
+        
+        # Configure grid weights for resizable columns
+        self.frame.columnconfigure(0, weight=2)  # Info frame
+        self.frame.columnconfigure(1, weight=1)  # Inactive mods
+        self.frame.columnconfigure(2, weight=1)  # Active mods
+        self.frame.columnconfigure(3, weight=0)  # Buttons (fixed width)
+        self.frame.rowconfigure(0, weight=1)      # Single row
 
+        # Create frames using grid layout
         self.info_frame = Frame(self.frame)
-        self.info_frame.pack(side=LEFT, fill=BOTH, expand=True)
+        self.info_frame.grid(row=0, column=0, sticky=NSEW, padx=5, pady=5)
+        self.info_frame.columnconfigure(0, weight=1)
+        self.info_frame.rowconfigure(0, weight=1)
 
         self.inactive_mods_frame = Frame(self.frame)
-        self.inactive_mods_frame.pack(side=LEFT, fill=BOTH, expand=True)
+        self.inactive_mods_frame.grid(row=0, column=1, sticky=NSEW, padx=5, pady=5)
+        self.inactive_mods_frame.columnconfigure(0, weight=1)
+        self.inactive_mods_frame.rowconfigure(2, weight=1)  # Listbox row
 
         self.active_mods_frame = Frame(self.frame)
-        self.active_mods_frame.pack(side=LEFT, fill=BOTH, expand=True)
+        self.active_mods_frame.grid(row=0, column=2, sticky=NSEW, padx=5, pady=5)
+        self.active_mods_frame.columnconfigure(0, weight=1)
+        self.active_mods_frame.rowconfigure(2, weight=1)  # Listbox row
 
         self.buttons_frame = Frame(self.frame)
-        self.buttons_frame.pack(side=RIGHT, fill=Y)
+        self.buttons_frame.grid(row=0, column=3, sticky=NS, padx=5, pady=5)
 
         self.create_widgets()
 
@@ -54,7 +71,7 @@ class Gui:
         # -------------------
         # INACTIVE MODS FRAME
         self.inactive_count_frame = Frame(self.inactive_mods_frame)
-        self.inactive_count_frame.pack(fill=X, padx=5, pady=5)
+        self.inactive_count_frame.grid(row=0, column=0, sticky=EW, padx=5, pady=5)
         self.inactive_count_label = Label(self.inactive_count_frame, text="Inactive Mods")
         self.inactive_count_label.pack(side=LEFT, padx=5, pady=5)
         self.inactive_count_value = Label(self.inactive_count_frame, text=str(len(self.manager.inactive_mods())))
@@ -62,41 +79,48 @@ class Gui:
 
         # Search bar for inactive mods
         self.search_bar = Entry(self.inactive_mods_frame)
-        self.search_bar.pack(fill=X, padx=5, pady=5)
+        self.search_bar.grid(row=1, column=0, sticky=EW, padx=5, pady=5)
         self.search_bar.bind('<KeyRelease>', lambda e: self.populate_inactive_mods())
 
-        # Create the listbox for inactive mods
-        self.inactive_mods_listbox = Listbox(self.inactive_mods_frame, selectmode=SINGLE)
-        self.inactive_mods_listbox.pack(fill=BOTH, expand=True)
+        # Listbox for inactive mods
+        self.inactive_mods_listbox = Listbox(self.inactive_mods_frame)
+        self.inactive_mods_listbox.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
         self.inactive_mods_listbox.bind('<<ListboxSelect>>', self.on_mod_select)
         self.inactive_mods_listbox.bind('<Double-Button-1>', lambda e: self.toggle_mod())
 
         # -------------------
         # ACTIVE MODS FRAME
         self.active_count_frame = Frame(self.active_mods_frame)
-        self.active_count_frame.pack(fill=X, padx=5, pady=5)
+        self.active_count_frame.grid(row=0, column=0, sticky=EW, padx=5, pady=5)
         self.active_count_label = Label(self.active_count_frame, text="Active Mods")
         self.active_count_label.pack(side=LEFT, padx=5, pady=5)
         self.active_count_value = Label(self.active_count_frame, text=str(len(self.manager.active_mods)))
         self.active_count_value.pack(side=RIGHT, padx=5, pady=5)
+        
         # Search bar for active mods
         self.active_search_bar = Entry(self.active_mods_frame)
-        self.active_search_bar.pack(fill=X, padx=5, pady=5)
+        self.active_search_bar.grid(row=1, column=0, sticky=EW, padx=5, pady=5)
         self.active_search_bar.bind('<KeyRelease>', lambda e: self.populate_active_mods())
-        # Create the listbox for active mods
-        self.active_mods_listbox = Listbox(self.active_mods_frame, selectmode=SINGLE)
-        self.active_mods_listbox.pack(fill=BOTH, expand=True)
+        
+        # Listbox for active mods
+        self.active_mods_listbox = Listbox(self.active_mods_frame)
+        self.active_mods_listbox.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
         self.active_mods_listbox.bind('<<ListboxSelect>>', self.on_mod_select)
         self.active_mods_listbox.bind('<Double-Button-1>', lambda e: self.toggle_mod())
 
         # Create the info text area
         self.info_text = Text(self.info_frame, wrap=WORD)
-        self.info_text.pack(fill=BOTH, expand=True)
+        self.info_text.grid(row=0, column=0, sticky=NSEW)
+        
+        # Scrollbar for info text
+        scrollbar = Scrollbar(self.info_frame, command=self.info_text.yview)
+        scrollbar.grid(row=0, column=1, sticky=NS)
+        self.info_text.config(yscrollcommand=scrollbar.set)
 
         # Populate the listboxes
         self.update_mod_lists()
 
-        # Create buttons: reset, export, import, save
+        # Create buttons
         self.clear_mods_button = Button(self.buttons_frame, text="Clear", command=self.clear_active_mods)
         self.clear_mods_button.pack(fill=X, padx=5, pady=5)
         self.reset_button = Button(self.buttons_frame, text="Reset", command=self.reset_modlist)
@@ -105,6 +129,11 @@ class Gui:
         self.export_button.pack(fill=X, padx=5, pady=5)
         self.import_button = Button(self.buttons_frame, text="Import", command=self.import_modlist)
         self.import_button.pack(fill=X, padx=5, pady=5)
+        
+        # Spacer to push Save button to bottom
+        spacer = Frame(self.buttons_frame, height=0)
+        spacer.pack(fill=Y, expand=True)
+        
         self.save_button = Button(self.buttons_frame, text="Save", command=self.set_active_mods)
         self.save_button.pack(fill=X, padx=5, pady=5, side=BOTTOM)
 
