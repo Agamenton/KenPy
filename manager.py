@@ -55,6 +55,17 @@ class Manager:
         Get a list of inactive mods (mods that are not in the active_mods list).
         """
         return [mod for mod in self.all_mods if mod not in self.active_mods]
+    
+    def toggle_mod(self, mod: Mod):
+        """
+        Toggle the active state of a mod.
+        If the mod is active, it will be removed from the active_mods list.
+        If it is inactive, it will be added to the active_mods list.
+        """
+        if mod in self.active_mods:
+            self.active_mods.remove(mod)
+        else:
+            self.active_mods.append(mod)        
 
 
 if __name__ == "__main__":
