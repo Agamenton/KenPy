@@ -31,7 +31,7 @@ class Manager:
                 self.all_mods.extend(kenshi_workshop_folder.rglob("*.mod"))
         self.all_mods = [Mod(mod) for mod in self.all_mods if mod.is_file()]
 
-        self.active_mods = []
+        self.active_mods: list[Mod] = []
         for mod_name in active_mod_names:
             mod = next((m for m in self.all_mods if m.path.name == mod_name), None)
             if mod:
@@ -49,6 +49,12 @@ class Manager:
         """
         with open(self.active_mods_file, 'w') as f:
             f.write('\n'.join([m.path.name for m in self.active_mods]))
+    
+    def inactive_mods(self):
+        """
+        Get a list of inactive mods (mods that are not in the active_mods list).
+        """
+        return [mod for mod in self.all_mods if mod not in self.active_mods]
 
 
 if __name__ == "__main__":
@@ -61,3 +67,8 @@ if __name__ == "__main__":
     print("Active Mods:")
     for mod in manager.active_mods:
         print(mod)
+    inactive_mods = manager.inactive_mods()
+    print("Inactive Mods:")
+    for mod in inactive_mods:
+        print(mod.name)
+    print(len(inactive_mods), "inactive mods found.")
