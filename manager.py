@@ -15,10 +15,10 @@ class Manager:
         
         self.active_mods_file = Path(kenshi_dir) / "data" / "mods.cfg"
 
-        self.active_mods = []
+        active_mod_names = []
         if self.active_mods_file.exists():
             with open(self.active_mods_file, 'r') as f:
-                self.active_mods = f.read().splitlines()
+                active_mod_names = f.read().splitlines()
                 
         self.all_mods = []
         kenshi_mods_folder = Path(kenshi_dir) / "mods"
@@ -31,6 +31,12 @@ class Manager:
                 self.all_mods.extend(kenshi_workshop_folder.rglob("*.mod"))
         self.all_mods = [Mod(mod) for mod in self.all_mods if mod.is_file()]
 
+        self.active_mods = []
+        for mod_name in active_mod_names:
+            mod = next((m for m in self.all_mods if m.path.name == mod_name), None)
+            if mod:
+                self.active_mods.append(mod)
+
     def __str__(self):
         return f"Manager(kenshi_dir='{self.kenshi_dir}', all mods cnt='{len(self.all_mods)}', active mods cnt='{len(self.active_mods)}')"
     
@@ -42,13 +48,16 @@ class Manager:
         Save the active mods to the active_mods_file.
         """
         with open(self.active_mods_file, 'w') as f:
-            f.write('\n'.join(self.active_mods))
+            f.write('\n'.join([m.path.name for m in self.active_mods]))
 
 
 if __name__ == "__main__":
     # Example usage
-    kenshi_dir = r"E:\SteamLibrary\steamapps\common\Kenshi"  # Replace with actual Kenshi directory
+    kenshi_dir = r"E:\SteamLibrary\steamapps\common\Kenshi"
     manager = Manager(kenshi_dir)
     print(manager)
     for mod in manager.all_mods:
+        print(mod)
+    print("Active Mods:")
+    for mod in manager.active_mods:
         print(mod)
