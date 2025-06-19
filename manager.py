@@ -49,6 +49,7 @@ class Manager:
         """
         with open(self.active_mods_file, 'w') as f:
             f.write('\n'.join([m.path.name for m in self.active_mods]))
+            f.write('\n')  # This is what the official manager does
     
     def inactive_mods(self):
         """
