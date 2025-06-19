@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 CFG_FILE = "config.json"
-APP_NAME = "Pyshi"
+APP_NAME = "KenPy"
 
 
 CFG_KENSHI_DIR = "KENSHI_DIR"
