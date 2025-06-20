@@ -82,6 +82,11 @@ def main():
             "Kenshi installation folder could not be found.\nFiledialog will open now, please select Kenshi folder manually."
         )
         kenshi_folder = select_kenshi_folder()
+
+    if kenshi_folder is None:
+        # if user didnt select folder, just exit
+        return
+    
     manager = Manager(kenshi_folder)
     # discover local mods
     # discover workshop mods
