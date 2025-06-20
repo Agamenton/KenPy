@@ -346,6 +346,8 @@ class Gui:
             widget.selection_clear(0, END)
             widget.selection_set(index)
             widget.activate(index)
+            modlist = self.manager.active_mods if widget == self.active_mods_listbox else self.manager.inactive_mods()
+            self.display_mod_info(modlist[index])
         
         if index < 0:
             return
