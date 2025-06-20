@@ -94,6 +94,7 @@ class Gui:
         self.inactive_mods_listbox.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
         self.inactive_mods_listbox.bind('<<ListboxSelect>>', self.on_mod_select)
         self.inactive_mods_listbox.bind('<Button-1>', self.handle_inactive_click)
+        self.inactive_mods_listbox.bind('<Button-3>', self.handle_mod_rightclick)
 
         # -------------------
         # ACTIVE MODS FRAME
@@ -112,6 +113,7 @@ class Gui:
         self.active_mods_listbox.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
         self.active_mods_listbox.bind('<<ListboxSelect>>', self.on_mod_select)
         self.active_mods_listbox.bind('<Button-1>', self.handle_active_click)
+        self.active_mods_listbox.bind('<Button-3>', self.handle_mod_rightclick)
         
         # Add drag-and-drop bindings for active mods list
         self.active_mods_listbox.bind('<ButtonPress-1>', self.drag_start)
@@ -331,7 +333,64 @@ class Gui:
         self.info_text.delete(1.0, END)
         self.info_text.insert(END, str(mod))
 
+    def handle_mod_rightclick(self, event):
+        """Handle right-click context menu for mods"""
+        widget = event.widget
+        index = widget.nearest(event.y)
+
+        if isinstance(widget, Listbox):
+            widget.selection_clear(0, END)
+            widget.selection_set(index)
+            widget.activate(index)
+        
+        if index < 0:
+            return
+        
+        # Create context menu
+        context_menu = Menu(self.root, tearoff=0)
+        # commands: open folder, open URL in browser, open URL in Steam, copy mod path to clipboard, copy URL to clipboard
+        mod = None
+        if widget == self.active_mods_listbox:
+            mod = self.manager.active_mods[index]
+        elif widget == self.inactive_mods_listbox:
+            mod = self.manager.inactive_mods()[index]
+        if mod:
+            context_menu.add_command(label="Open Mod Folder", command=lambda: self.open_folder(mod))
+            if mod.url():
+                # DEV-NOTE: Gui class probably should not be responsible for this
+                context_menu.add_command(label="Open URL in Browser", command=lambda: self.open_url(mod))
+                context_menu.add_command(label="Open URL in Steam", command=lambda: self.open_steam_url(mod))
+            context_menu.add_command(label="Copy Mod Path", command=lambda: self.copy_mod_path(mod))
+            if mod.url():
+                context_menu.add_command(label="Copy URL", command=lambda: self.copy_url(mod))
+        
+        # Show the context menu
+        context_menu.post(event.x_root, event.y_root)
     
+    def open_folder(self, mod: Mod):
+        """Open the mod's folder in the file explorer"""
+        import os
+        os.startfile(mod.path.parent)
+
+    def open_url(self, mod: Mod):
+        """Open the mod's URL in the default web browser"""
+        import webbrowser
+        url = mod.url()
+        if url:
+            webbrowser.open(url)
+
+    def open_steam_url(self, mod: Mod):
+        """Open the mod's URL in the Steam client"""
+        # TODO
+
+    def copy_mod_path(self, mod: Mod):
+        """Copy the mod's path to the clipboard"""
+        # TODO:
+
+    def copy_url(self, mod: Mod):
+        """Copy the mod's URL to the clipboard"""
+        # TODO
+        
     # ======================
     # MOD LIST OPERATIONS
     # ======================
