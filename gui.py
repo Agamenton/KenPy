@@ -34,19 +34,23 @@ class Gui:
     def __init__(self, root: Tk, manager: Manager):
         self.root = root
         self.manager = manager
-
+        
+        # Track last click times for each listbox
+        self.last_inactive_click = 0
+        self.last_active_click = 0
+        
         # Main frame setup
         self.frame = Frame(self.root)
         self.frame.pack(fill=BOTH, expand=True)
         
-        # Configure grid weights for resizable columns
+        # Configure grid weights
         self.frame.columnconfigure(0, weight=2)  # Info frame
         self.frame.columnconfigure(1, weight=1)  # Inactive mods
         self.frame.columnconfigure(2, weight=1)  # Active mods
         self.frame.columnconfigure(3, weight=0)  # Buttons (fixed width)
-        self.frame.rowconfigure(0, weight=1)      # Single row
+        self.frame.rowconfigure(0, weight=1)     # Single row
 
-        # Create frames using grid layout
+        # Create frames
         self.info_frame = Frame(self.frame)
         self.info_frame.grid(row=0, column=0, sticky=NSEW, padx=5, pady=5)
         self.info_frame.columnconfigure(0, weight=1)
@@ -55,12 +59,12 @@ class Gui:
         self.inactive_mods_frame = Frame(self.frame)
         self.inactive_mods_frame.grid(row=0, column=1, sticky=NSEW, padx=5, pady=5)
         self.inactive_mods_frame.columnconfigure(0, weight=1)
-        self.inactive_mods_frame.rowconfigure(2, weight=1)  # Listbox row
+        self.inactive_mods_frame.rowconfigure(2, weight=1)
 
         self.active_mods_frame = Frame(self.frame)
         self.active_mods_frame.grid(row=0, column=2, sticky=NSEW, padx=5, pady=5)
         self.active_mods_frame.columnconfigure(0, weight=1)
-        self.active_mods_frame.rowconfigure(2, weight=1)  # Listbox row
+        self.active_mods_frame.rowconfigure(2, weight=1)
 
         self.buttons_frame = Frame(self.frame)
         self.buttons_frame.grid(row=0, column=3, sticky=NS, padx=5, pady=5)
@@ -77,16 +81,15 @@ class Gui:
         self.inactive_count_value = Label(self.inactive_count_frame, text=str(len(self.manager.inactive_mods())))
         self.inactive_count_value.pack(side=RIGHT, padx=5, pady=5)
 
-        # Search bar for inactive mods
         self.search_bar = Entry(self.inactive_mods_frame)
         self.search_bar.grid(row=1, column=0, sticky=EW, padx=5, pady=5)
         self.search_bar.bind('<KeyRelease>', lambda e: self.populate_inactive_mods())
 
-        # Listbox for inactive mods
         self.inactive_mods_listbox = Listbox(self.inactive_mods_frame)
         self.inactive_mods_listbox.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
         self.inactive_mods_listbox.bind('<<ListboxSelect>>', self.on_mod_select)
-        self.inactive_mods_listbox.bind('<Double-Button-1>', lambda e: self.toggle_mod())
+        # Bind single click instead of double-click
+        self.inactive_mods_listbox.bind('<Button-1>', self.handle_inactive_click)
 
         # -------------------
         # ACTIVE MODS FRAME
@@ -97,22 +100,20 @@ class Gui:
         self.active_count_value = Label(self.active_count_frame, text=str(len(self.manager.active_mods)))
         self.active_count_value.pack(side=RIGHT, padx=5, pady=5)
         
-        # Search bar for active mods
         self.active_search_bar = Entry(self.active_mods_frame)
         self.active_search_bar.grid(row=1, column=0, sticky=EW, padx=5, pady=5)
         self.active_search_bar.bind('<KeyRelease>', lambda e: self.populate_active_mods())
         
-        # Listbox for active mods
         self.active_mods_listbox = Listbox(self.active_mods_frame)
         self.active_mods_listbox.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
         self.active_mods_listbox.bind('<<ListboxSelect>>', self.on_mod_select)
-        self.active_mods_listbox.bind('<Double-Button-1>', lambda e: self.toggle_mod())
+        # Bind single click instead of double-click
+        self.active_mods_listbox.bind('<Button-1>', self.handle_active_click)
 
         # Create the info text area
         self.info_text = Text(self.info_frame, wrap=WORD)
         self.info_text.grid(row=0, column=0, sticky=NSEW)
         
-        # Scrollbar for info text
         scrollbar = Scrollbar(self.info_frame, command=self.info_text.yview)
         scrollbar.grid(row=0, column=1, sticky=NS)
         self.info_text.config(yscrollcommand=scrollbar.set)
@@ -130,12 +131,55 @@ class Gui:
         self.import_button = Button(self.buttons_frame, text="Import", command=self.import_modlist)
         self.import_button.pack(fill=X, padx=5, pady=5)
         
-        # Spacer to push Save button to bottom
         spacer = Frame(self.buttons_frame, height=0)
         spacer.pack(fill=Y, expand=True)
         
         self.save_button = Button(self.buttons_frame, text="Save", command=self.set_active_mods)
         self.save_button.pack(fill=X, padx=5, pady=5, side=BOTTOM)
+
+    def handle_inactive_click(self, event):
+            """Handle clicks in the inactive mods listbox"""
+            # Get the item at the click position
+            index = self.inactive_mods_listbox.nearest(event.y)
+            
+            # If this is a double-click (within 300ms of last click)
+            current_time = event.time
+            if current_time - self.last_inactive_click < 300 and self.last_inactive_click > 0:
+                # Process as double-click
+                self.toggle_mod_at_index(self.inactive_mods_listbox, index, "inactive")
+                self.last_inactive_click = 0  # Reset
+            else:
+                # Single click - just select the item
+                self.last_inactive_click = current_time
+                self.inactive_mods_listbox.selection_clear(0, END)
+                self.inactive_mods_listbox.selection_set(index)
+                self.inactive_mods_listbox.activate(index)
+                self.on_mod_select(event)  # Update info text with selected mod info
+                
+                # Schedule reset of click tracker
+                self.root.after(300, lambda: setattr(self, 'last_inactive_click', 0))
+
+    def handle_active_click(self, event):
+        """Handle clicks in the active mods listbox"""
+        # Get the item at the click position
+        index = self.active_mods_listbox.nearest(event.y)
+        
+        # If this is a double-click (within 300ms of last click)
+        current_time = event.time
+        if current_time - self.last_active_click < 300 and self.last_active_click > 0:
+            # Process as double-click
+            self.toggle_mod_at_index(self.active_mods_listbox, index, "active")
+            self.last_active_click = 0  # Reset
+        else:
+            # Single click - just select the item
+            self.last_active_click = current_time
+            self.active_mods_listbox.selection_clear(0, END)
+            self.active_mods_listbox.selection_set(index)
+            self.active_mods_listbox.activate(index)
+            self.on_mod_select(event)  # Update info text with selected mod info
+            
+            # Schedule reset of click tracker
+            self.root.after(300, lambda: setattr(self, 'last_active_click', 0))
 
     def export_modlist(self):
         """
@@ -207,12 +251,18 @@ class Gui:
         self.info_text.delete(1.0, END)
 
     def update_mod_lists(self):
-        """
-        Update the active and inactive mods lists.
-        This should be called after any changes to the mod list.
-        """
+        # Save scroll positions
+        inactive_scroll = self.inactive_mods_listbox.yview()
+        active_scroll = self.active_mods_listbox.yview()
+        
         self.populate_active_mods()
         self.populate_inactive_mods()
+        
+        # Restore scroll positions
+        self.inactive_mods_listbox.yview_moveto(inactive_scroll[0])
+        self.active_mods_listbox.yview_moveto(active_scroll[0])
+        
+        self.root.update_idletasks()
 
     def populate_active_mods(self):
         """
@@ -275,3 +325,20 @@ class Gui:
                 self.manager.toggle_mod(mod)
                 self.update_mod_lists()
                 self.display_mod_info(mod)
+
+    def toggle_mod_at_index(self, listbox, index, list_type):
+            """Toggle mod at the specified index in the specified list"""
+            if list_type == "active":
+                if 0 <= index < len(self.manager.active_mods):
+                    mod = self.manager.active_mods[index]
+                    self.manager.toggle_mod(mod)
+                    # Move focus to inactive list
+                    self.inactive_mods_listbox.focus_set()
+            elif list_type == "inactive":
+                if 0 <= index < len(self.manager.inactive_mods()):
+                    mod = self.manager.inactive_mods()[index]
+                    self.manager.toggle_mod(mod)
+                    # Move focus to active list
+                    self.active_mods_listbox.focus_set()
+            
+            self.update_mod_lists()
