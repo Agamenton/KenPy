@@ -40,6 +40,14 @@ class Mod:
 
         self._parse_mod_info()
 
+        self.steam_workshop_id = None
+        self.web_url = ""
+        self.steam_url = ""
+        self._get_steam_info()
+
+        if not self.web_url:
+            ... # TODO: is there any other standard way for a url?
+
     def __str__(self):
         return (f"Name: {self.name}\n"
                 f"Date Added: {self.date_added.strftime('%Y-%m-%d %H:%M:%S')}\n"
@@ -67,6 +75,20 @@ class Mod:
         self.description = self.read_string()
         self.requires = self.read_strings()
         self.references = self.read_strings()
+    
+    def _get_steam_info(self):
+        parent = self.path.parent
+        steam_info = parent / f"_{self.path.stem}.info" # should be an XML file with <id>...</id> tag containing the Steam Workshop ID
+        if steam_info.exists():
+            with open(steam_info, 'r', encoding='utf-8') as f:
+                content = f.read()
+                start = content.find("<id>") + 4    # TODO: probably should use XML parser
+                end = content.find("</id>", start)
+                if start != -1 and end != -1:
+                    self.workshop_id = content[start:end]
+                    self.web_url = f"https://steamcommunity.com/sharedfiles/filedetails/?id={self.workshop_id}"
+                    self.steam_url = f"steam://url/CommunityFilePage/{self.workshop_id}"
+        # DEV-NOTE: steam info contains more data, do we need it?
 
     def read_32int(self):
         start = self._head
@@ -85,23 +107,8 @@ class Mod:
         strings = self.read_string().split(',')
         # Remove empty strings
         return [s for s in strings if s]
-    
-    def url(self):
-        """Return the URL for the mod's preview image."""
-        parent = self.path.parent
-        steam_info = parent / f"_{self.path.stem}.info" # should be an XML file with <id>...</id> tag containing the Steam Workshop ID
-        if steam_info.exists():
-            with open(steam_info, 'r', encoding='utf-8') as f:
-                content = f.read()
-                start = content.find("<id>") + 4    # TODO: probably should use XML parser
-                end = content.find("</id>", start)
-                if start != -1 and end != -1:
-                    workshop_id = content[start:end]
-                    return f"https://steamcommunity.com/sharedfiles/filedetails/?id={workshop_id}"
-        # TODO: can there be any other URLs anywhere?
-        return ""
 
-    
+
 if __name__ == "__main__":
     # tests
     example_mods_path = "./example_mods"

@@ -7,6 +7,8 @@ from PIL import Image, ImageTk
 from mod import Mod
 from manager import Manager
 from config import APP_NAME, Config
+from steam_library import open_steam_with_url
+
 
 def start_gui(manager: Manager):
     """
@@ -358,12 +360,14 @@ class Gui:
             mod = self.manager.inactive_mods()[index]
         if mod:
             context_menu.add_command(label="Open Mod Folder", command=lambda: self.open_folder(mod))
-            if mod.url():
-                # DEV-NOTE: Gui class probably should not be responsible for this
+            
+            # DEV-NOTE: Gui class probably should not be responsible for this
+            if mod.web_url:
                 context_menu.add_command(label="Open URL in Browser", command=lambda: self.open_url(mod))
+            if mod.steam_url:
                 context_menu.add_command(label="Open URL in Steam", command=lambda: self.open_steam_url(mod))
             context_menu.add_command(label="Copy Mod Path", command=lambda: self.copy_mod_path(mod))
-            if mod.url():
+            if mod.web_url:
                 context_menu.add_command(label="Copy URL", command=lambda: self.copy_url(mod))
         
         # Show the context menu
@@ -377,13 +381,15 @@ class Gui:
     def open_url(self, mod: Mod):
         """Open the mod's URL in the default web browser"""
         import webbrowser
-        url = mod.url()
+        url = mod.web_url
         if url:
             webbrowser.open(url)
 
     def open_steam_url(self, mod: Mod):
         """Open the mod's URL in the Steam client"""
-        # TODO
+        url = mod.steam_url
+        if url:
+            open_steam_with_url(url)
 
     def copy_mod_path(self, mod: Mod):
         """Copy the mod's path to the clipboard"""
