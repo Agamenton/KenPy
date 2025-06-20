@@ -168,6 +168,20 @@ def get_workshop_of(appid):
     return workshop_path
     
 
+def open_steam_with_url(url):
+    """
+    Open the Steam client with a specific URL.
+    """
+    if platform.system() == "Windows":
+        os.system(f'start {url}')
+    elif platform.system() == "Linux":
+        os.system(f'steam {url}')
+    elif platform.system() == "Darwin":  # macOS
+        os.system(f'open {url}')
+    else:
+        print(f"Unsupported operating system: {platform.system()}. Cannot open Steam URL.")
+
+
 if __name__ == "__main__":
     steam_path = get_steam_install_path()
 
