@@ -112,7 +112,6 @@ class Gui:
         self.active_mods_listbox = Listbox(self.active_mods_frame)
         self.active_mods_listbox.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
         self.active_mods_listbox.bind('<<ListboxSelect>>', self.on_mod_select)
-        self.active_mods_listbox.bind('<Button-1>', self.handle_active_click)
         self.active_mods_listbox.bind('<Button-3>', self.handle_mod_rightclick)
         
         # Add drag-and-drop bindings for active mods list
@@ -153,9 +152,12 @@ class Gui:
     
     def drag_start(self, event):
         """Start a drag operation"""
-        # Only allow dragging in the active mods list
+        # Only allowed in the active mods list
         if event.widget != self.active_mods_listbox:
             return
+        
+        # also considered as click event
+        self.handle_active_click(event)
             
         # Get the index of the item under the mouse
         index = event.widget.nearest(event.y)
