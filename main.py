@@ -88,10 +88,7 @@ def main():
         return
     
     manager = Manager(kenshi_folder)
-    # discover local mods
-    # discover workshop mods
-    # instantiate Mod objects
-    # start GUI
+
     start_gui(manager)
 
 if __name__ == "__main__":
