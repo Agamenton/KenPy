@@ -1,5 +1,6 @@
 from pathlib import Path
 from tkinter import *
+import time
 
 from PIL import Image, ImageTk
 
@@ -29,7 +30,6 @@ def start_gui(manager: Manager):
 
     root.mainloop()
 
-
 class Gui:
     def __init__(self, root: Tk, manager: Manager):
         self.root = root
@@ -38,6 +38,11 @@ class Gui:
         # Track last click times for each listbox
         self.last_inactive_click = 0
         self.last_active_click = 0
+        
+        # Drag-and-drop variables
+        self.drag_source = None
+        self.drag_item_index = None
+        self.drag_start_y = None
         
         # Main frame setup
         self.frame = Frame(self.root)
@@ -88,7 +93,6 @@ class Gui:
         self.inactive_mods_listbox = Listbox(self.inactive_mods_frame)
         self.inactive_mods_listbox.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
         self.inactive_mods_listbox.bind('<<ListboxSelect>>', self.on_mod_select)
-        # Bind single click instead of double-click
         self.inactive_mods_listbox.bind('<Button-1>', self.handle_inactive_click)
 
         # -------------------
@@ -107,8 +111,12 @@ class Gui:
         self.active_mods_listbox = Listbox(self.active_mods_frame)
         self.active_mods_listbox.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
         self.active_mods_listbox.bind('<<ListboxSelect>>', self.on_mod_select)
-        # Bind single click instead of double-click
         self.active_mods_listbox.bind('<Button-1>', self.handle_active_click)
+        
+        # Add drag-and-drop bindings for active mods list
+        self.active_mods_listbox.bind('<ButtonPress-1>', self.drag_start)
+        self.active_mods_listbox.bind('<B1-Motion>', self.drag_motion)
+        self.active_mods_listbox.bind('<ButtonRelease-1>', self.drag_release)
 
         # Create the info text area
         self.info_text = Text(self.info_frame, wrap=WORD)
@@ -137,27 +145,94 @@ class Gui:
         self.save_button = Button(self.buttons_frame, text="Save", command=self.set_active_mods)
         self.save_button.pack(fill=X, padx=5, pady=5, side=BOTTOM)
 
-    def handle_inactive_click(self, event):
-            """Handle clicks in the inactive mods listbox"""
-            # Get the item at the click position
-            index = self.inactive_mods_listbox.nearest(event.y)
+    # ======================
+    # DRAG AND DROP FUNCTIONALITY
+    # ======================
+    
+    def drag_start(self, event):
+        """Start a drag operation"""
+        # Only allow dragging in the active mods list
+        if event.widget != self.active_mods_listbox:
+            return
             
-            # If this is a double-click (within 300ms of last click)
-            current_time = event.time
-            if current_time - self.last_inactive_click < 300 and self.last_inactive_click > 0:
-                # Process as double-click
-                self.toggle_mod_at_index(self.inactive_mods_listbox, index, "inactive")
-                self.last_inactive_click = 0  # Reset
-            else:
-                # Single click - just select the item
-                self.last_inactive_click = current_time
-                self.inactive_mods_listbox.selection_clear(0, END)
-                self.inactive_mods_listbox.selection_set(index)
-                self.inactive_mods_listbox.activate(index)
-                self.on_mod_select(event)  # Update info text with selected mod info
+        # Get the index of the item under the mouse
+        index = event.widget.nearest(event.y)
+        if index >= 0:
+            self.drag_source = event.widget
+            self.drag_item_index = index
+            self.drag_start_y = event.y
+            
+            # Change cursor to indicate dragging
+            event.widget.config(cursor="hand2")
+    
+    def drag_motion(self, event):
+        """Handle drag motion events"""
+        # Only process if we're in a drag operation
+        if self.drag_source is None or self.drag_item_index is None:
+            return
+            
+        # Calculate how far we've dragged
+        delta_y = event.y - self.drag_start_y
+        
+        # Only move the item if we've moved at least 5 pixels
+        if abs(delta_y) > 5:
+            # Find the item we're hovering over
+            target_index = event.widget.nearest(event.y)
+            
+            # Only move if we're dragging to a different position
+            if target_index >= 0 and target_index != self.drag_item_index:
+                # Move the mod in the manager's list
+                mod = self.manager.active_mods.pop(self.drag_item_index)
+                self.manager.active_mods.insert(target_index, mod)
                 
-                # Schedule reset of click tracker
-                self.root.after(300, lambda: setattr(self, 'last_inactive_click', 0))
+                # Update the list display
+                self.populate_active_mods()
+                
+                # Select the moved item
+                event.widget.selection_clear(0, END)
+                event.widget.selection_set(target_index)
+                event.widget.activate(target_index)
+                
+                # Update our drag index to the new position
+                self.drag_item_index = target_index
+                
+                # Update the start position for smooth dragging
+                self.drag_start_y = event.y
+    
+    def drag_release(self, event):
+        """End a drag operation"""
+        # Reset drag state
+        self.drag_source = None
+        self.drag_item_index = None
+        self.drag_start_y = None
+        
+        # Reset cursor to default
+        event.widget.config(cursor="")
+    
+    # ======================
+    # MOD LIST MANAGEMENT
+    # ======================
+    
+    def handle_inactive_click(self, event):
+        """Handle clicks in the inactive mods listbox"""
+        # Get the item at the click position
+        index = self.inactive_mods_listbox.nearest(event.y)
+        
+        # If this is a double-click (within 300ms of last click)
+        current_time = event.time
+        if current_time - self.last_inactive_click < 300 and self.last_inactive_click > 0:
+            # Process as double-click
+            self.toggle_mod_at_index(self.inactive_mods_listbox, index, "inactive")
+            self.last_inactive_click = 0  # Reset
+        else:
+            # Single click - just select the item
+            self.last_inactive_click = current_time
+            self.inactive_mods_listbox.selection_clear(0, END)
+            self.inactive_mods_listbox.selection_set(index)
+            self.inactive_mods_listbox.activate(index)
+            
+            # Schedule reset of click tracker
+            self.root.after(300, lambda: setattr(self, 'last_inactive_click', 0))
 
     def handle_active_click(self, event):
         """Handle clicks in the active mods listbox"""
@@ -176,17 +251,94 @@ class Gui:
             self.active_mods_listbox.selection_clear(0, END)
             self.active_mods_listbox.selection_set(index)
             self.active_mods_listbox.activate(index)
-            self.on_mod_select(event)  # Update info text with selected mod info
             
             # Schedule reset of click tracker
             self.root.after(300, lambda: setattr(self, 'last_active_click', 0))
 
+    def toggle_mod_at_index(self, listbox, index, list_type):
+        """Toggle mod at the specified index in the specified list"""
+        if list_type == "active":
+            if 0 <= index < len(self.manager.active_mods):
+                mod = self.manager.active_mods[index]
+                self.manager.toggle_mod(mod)
+                # Move focus to inactive list
+                self.inactive_mods_listbox.focus_set()
+        elif list_type == "inactive":
+            if 0 <= index < len(self.manager.inactive_mods()):
+                mod = self.manager.inactive_mods()[index]
+                self.manager.toggle_mod(mod)
+                # Move focus to active list
+                self.active_mods_listbox.focus_set()
+        
+        self.update_mod_lists()
+
+    def update_mod_lists(self):
+        """Update both mod lists and preserve scroll positions"""
+        # Save scroll positions
+        inactive_scroll = self.inactive_mods_listbox.yview()
+        active_scroll = self.active_mods_listbox.yview()
+        
+        # Update the lists
+        self.populate_active_mods()
+        self.populate_inactive_mods()
+        
+        # Restore scroll positions
+        self.inactive_mods_listbox.yview_moveto(inactive_scroll[0])
+        self.active_mods_listbox.yview_moveto(active_scroll[0])
+        
+        self.root.update_idletasks()
+    
+    def populate_active_mods(self):
+        """Populate the active mods listbox"""
+        self.active_mods_listbox.delete(0, END)
+        search_term = self.active_search_bar.get().strip().lower()
+        for mod in self.manager.active_mods:
+            if search_term and search_term not in mod.name.lower():
+                continue
+            self.active_mods_listbox.insert(END, mod.name)
+        self.active_count_value.config(text=str(len(self.manager.active_mods)))
+    
+    def populate_inactive_mods(self):
+        """Populate the inactive mods listbox"""
+        self.inactive_mods_listbox.delete(0, END)
+        search_term = self.search_bar.get().strip().lower()
+        for mod in self.manager.inactive_mods():
+            if search_term and search_term not in mod.name.lower():
+                continue
+            self.inactive_mods_listbox.insert(END, mod.name)
+        self.inactive_count_value.config(text=str(len(self.manager.inactive_mods())))
+    
+    # ======================
+    # MOD INFORMATION DISPLAY
+    # ======================
+    
+    def on_mod_select(self, event):
+        """Handle mod selection events"""
+        widget = event.widget
+        if widget == self.active_mods_listbox:
+            index = widget.curselection()
+            if index:
+                mod = self.manager.active_mods[index[0]]
+                self.display_mod_info(mod)
+        elif widget == self.inactive_mods_listbox:
+            index = widget.curselection()
+            if index:
+                mod = self.manager.inactive_mods()[index[0]]
+                self.display_mod_info(mod)
+    
+    def display_mod_info(self, mod: Mod):
+        """Display information about the selected mod"""
+        self.info_text.delete(1.0, END)
+        self.info_text.insert(END, str(mod))
+
+    
+    # ======================
+    # MOD LIST OPERATIONS
+    # ======================
+    
     def export_modlist(self):
-        """
-        Export the current active mods to a text file.
-        """        
+        """Export the current active mods to a text file"""
         modlist_data = "\n".join(mod.path.name for mod in self.manager.active_mods)
-        # ask user for a file name via a file dialog
         from tkinter import filedialog
         default_dir = Path(Config.get_config_dir(APP_NAME)) / "modlists"
         default_dir.mkdir(parents=True, exist_ok=True)
@@ -202,10 +354,7 @@ class Gui:
                 f.write(modlist_data)
 
     def import_modlist(self):
-        """
-        Import a mod list from a text file.
-        This should be called when the user clicks the import button.
-        """
+        """Import a mod list from a text file"""
         from tkinter import filedialog
         default_dir = Path(Config.get_config_dir(APP_NAME)) / "modlists"
         if not default_dir.exists():
@@ -226,119 +375,17 @@ class Gui:
             self.update_mod_lists()
 
     def set_active_mods(self):
-        """
-        Save the current active mods to the active_mods_file.
-        This should be called when the user clicks the save button.
-        """
+        """Save the current active mods"""
         self.manager.save_active_mods()
 
     def clear_active_mods(self):
-        """
-        Clear the active mods list and update the GUI.
-        This should be called when the user clicks the Clear button.
-        """
+        """Clear the active mods list"""
         self.manager.active_mods.clear()
         self.update_mod_lists()
         self.info_text.delete(1.0, END)
 
     def reset_modlist(self):
-        """
-        Reset the mod manager to its initial state (or to last Save).
-        This should be called when the user clicks the Reset button.
-        """
+        """Reset the mod manager to its initial state"""
         self.manager = Manager(self.manager.kenshi_dir)
         self.update_mod_lists()
         self.info_text.delete(1.0, END)
-
-    def update_mod_lists(self):
-        # Save scroll positions
-        inactive_scroll = self.inactive_mods_listbox.yview()
-        active_scroll = self.active_mods_listbox.yview()
-        
-        self.populate_active_mods()
-        self.populate_inactive_mods()
-        
-        # Restore scroll positions
-        self.inactive_mods_listbox.yview_moveto(inactive_scroll[0])
-        self.active_mods_listbox.yview_moveto(active_scroll[0])
-        
-        self.root.update_idletasks()
-
-    def populate_active_mods(self):
-        """
-        Populate the active mods listbox with the names of active mods.
-        """
-        self.active_mods_listbox.delete(0, END)
-        search_term = self.active_search_bar.get().strip().lower()
-        for mod in self.manager.active_mods:
-            if search_term and search_term not in mod.name.lower():
-                continue
-            self.active_mods_listbox.insert(END, mod.name)
-        self.active_count_value.config(text=str(len(self.manager.active_mods)))
-
-    def populate_inactive_mods(self):
-        """
-        Populate the inactive mods listbox with the names of inactive mods.
-        """
-        self.inactive_mods_listbox.delete(0, END)
-
-        search_term = self.search_bar.get().strip().lower()
-
-        for mod in self.manager.inactive_mods():
-            if search_term and search_term not in mod.name.lower():
-                continue
-            self.inactive_mods_listbox.insert(END, mod.name)
-        self.inactive_count_value.config(text=str(len(self.manager.inactive_mods())))
-    
-    def on_mod_select(self, event):
-        selected_index = self.active_mods_listbox.curselection()
-        if selected_index:
-            mod = self.manager.active_mods[selected_index[0]]
-            self.display_mod_info(mod)
-        else:
-            selected_index = self.inactive_mods_listbox.curselection()
-            if selected_index:
-                mod = self.manager.inactive_mods()[selected_index[0]]
-                self.display_mod_info(mod)
-
-    def display_mod_info(self, mod: Mod):
-        """
-        Display the information of the selected mod in the info text area.
-        """
-        self.info_text.delete(1.0, END)
-        self.info_text.insert(END, str(mod))
-
-    def toggle_mod(self):
-        """
-        Toggle the selected mod between active and inactive.
-        """
-        selected_index = self.active_mods_listbox.curselection()
-        if selected_index:
-            mod = self.manager.active_mods[selected_index[0]]
-            self.manager.toggle_mod(mod)
-            self.update_mod_lists()
-            self.display_mod_info(mod)
-        else:
-            selected_index = self.inactive_mods_listbox.curselection()
-            if selected_index:
-                mod = self.manager.inactive_mods()[selected_index[0]]
-                self.manager.toggle_mod(mod)
-                self.update_mod_lists()
-                self.display_mod_info(mod)
-
-    def toggle_mod_at_index(self, listbox, index, list_type):
-            """Toggle mod at the specified index in the specified list"""
-            if list_type == "active":
-                if 0 <= index < len(self.manager.active_mods):
-                    mod = self.manager.active_mods[index]
-                    self.manager.toggle_mod(mod)
-                    # Move focus to inactive list
-                    self.inactive_mods_listbox.focus_set()
-            elif list_type == "inactive":
-                if 0 <= index < len(self.manager.inactive_mods()):
-                    mod = self.manager.inactive_mods()[index]
-                    self.manager.toggle_mod(mod)
-                    # Move focus to active list
-                    self.active_mods_listbox.focus_set()
-            
-            self.update_mod_lists()
