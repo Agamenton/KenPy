@@ -98,6 +98,10 @@ class Gui:
         self.inactive_mods_listbox.bind('<Button-1>', self.handle_inactive_click)
         self.inactive_mods_listbox.bind('<Button-3>', self.handle_mod_rightclick)
 
+        # Highlight on hover
+        self.inactive_mods_listbox.bind('<Motion>', self.on_listbox_hover)
+        self.inactive_mods_listbox.bind('<Leave>', self.on_listbox_leave)
+
         # -------------------
         # ACTIVE MODS FRAME
         self.active_count_frame = Frame(self.active_mods_frame)
@@ -116,6 +120,10 @@ class Gui:
         self.active_mods_listbox.bind('<<ListboxSelect>>', self.on_mod_select)
         self.active_mods_listbox.bind('<Button-3>', self.handle_mod_rightclick)
         
+        # Highlight on hover
+        self.active_mods_listbox.bind('<Motion>', self.on_listbox_hover)
+        self.active_mods_listbox.bind('<Leave>', self.on_listbox_leave)
+
         # Add drag-and-drop bindings for active mods list
         self.active_mods_listbox.bind('<ButtonPress-1>', self.drag_start)
         self.active_mods_listbox.bind('<B1-Motion>', self.drag_motion)
@@ -218,6 +226,27 @@ class Gui:
     # ======================
     # MOD LIST MANAGEMENT
     # ======================
+
+    def on_listbox_leave(self, event):
+        """Reset the background color of all items in the listbox when mouse leaves"""
+        widget = event.widget
+        list_length = widget.size()
+        for i in range(list_length):
+            widget.itemconfig(i, {'bg': widget.cget('bg')})
+
+    def on_listbox_hover(self, event):
+        """Highlight the item under the mouse cursor in the listbox"""
+        widget = event.widget
+        index = widget.nearest(event.y)
+        
+        # set every item to normal
+        list_length = widget.size()
+        for i in range(list_length):
+            widget.itemconfig(i, {'bg': widget.cget('bg')})
+
+        # highlight the item under the cursor
+        if index >= 0:
+            widget.itemconfig(index, {'bg': 'lightblue'})
     
     def handle_inactive_click(self, event):
         """Handle clicks in the inactive mods listbox"""
