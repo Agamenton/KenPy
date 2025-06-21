@@ -44,7 +44,7 @@ class Gui:
         
         # Drag-and-drop variables
         self.drag_source = None
-        self.drag_item_index = None
+        self.drag_item = None
         self.drag_start_y = None
         
         # Main frame setup
@@ -218,7 +218,10 @@ class Gui:
         # Get the index of the item under the mouse
         index = event.widget.nearest(event.y)
         if index >= 0:
+            mod_name = event.widget.get(index)
+            mod = self.manager.mod_by_name(mod_name)
             self.drag_source = event.widget
+            self.drag_item = mod
             self.drag_item_index = index
             self.drag_start_y = event.y
             
@@ -228,22 +231,25 @@ class Gui:
     def drag_motion(self, event):
         """Handle drag motion events"""
         # Only process if we're in a drag operation
-        if self.drag_source is None or self.drag_item_index is None:
+        if self.drag_source is None or self.drag_item is None:
             return
             
         # Calculate how far we've dragged
         delta_y = event.y - self.drag_start_y
         
         # Only move the item if we've moved at least 5 pixels
-        if abs(delta_y) > 5:
+        if abs(delta_y) > 3:
             # Find the item we're hovering over
             target_index = event.widget.nearest(event.y)
             
             # Only move if we're dragging to a different position
             if target_index >= 0 and target_index != self.drag_item_index:
                 # Move the mod in the manager's list
-                mod = self.manager.active_mods.pop(self.drag_item_index)
-                self.manager.active_mods.insert(target_index, mod)
+                target_mod_name = event.widget.get(target_index)
+                target_mod = self.manager.mod_by_name(target_mod_name)
+                target_manager_index = self.manager.active_mods.index(target_mod)
+                self.manager.active_mods.remove(self.drag_item)
+                self.manager.active_mods.insert(target_manager_index, self.drag_item)
                 
                 # Update the list display
                 self.populate_active_mods()
@@ -254,7 +260,9 @@ class Gui:
                 event.widget.activate(target_index)
                 
                 # Update our drag index to the new position
-                self.drag_item_index = target_index
+                mod_name = event.widget.get(target_index)
+                mod = self.manager.mod_by_name(mod_name)
+                self.drag_item = mod
                 
                 # Update the start position for smooth dragging
                 self.drag_start_y = event.y
@@ -263,6 +271,7 @@ class Gui:
         """End a drag operation"""
         # Reset drag state
         self.drag_source = None
+        self.drag_item = None
         self.drag_item_index = None
         self.drag_start_y = None
         
