@@ -16,11 +16,15 @@ def find_files(root, pattern, level=0):
     root = Path(root)
     matches = []
     for item in root.iterdir():
-        if item.is_dir():
+        if not item.is_dir():
+            if item.match(pattern) and (item.name not in [path.name for path in matches]):
+                matches.append(item)
+        else:
             if level:
-                matches.extend(find_files(item, pattern, level - 1))
-        elif item.match(pattern):
-            matches.append(item)
+                new_matches = find_files(item, pattern, level - 1)
+                for match in new_matches:
+                    if match.match(pattern) and (match.name not in [path.name for path in matches]):
+                        matches.append(match)
     return matches
 
 
