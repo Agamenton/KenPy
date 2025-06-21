@@ -1,5 +1,6 @@
 from pathlib import Path
 from tkinter import *
+from tkinter import messagebox
 import time
 
 from PIL import Image, ImageTk
@@ -184,14 +185,16 @@ class Gui:
         self.clear_mods_button.pack(fill=X, padx=5, pady=5)
         self.reset_button = Button(self.buttons_frame, text="Restore", command=self.reset_modlist)
         self.reset_button.pack(fill=X, padx=5, pady=5)
-        
+
         spacer = Frame(self.buttons_frame, height=0)
         spacer.pack(fill=Y, expand=True)
 
-        self.export_button = Button(self.buttons_frame, text="Export", command=self.export_modlist)
+        self.export_button = Button(self.buttons_frame, text="Export list", command=self.export_modlist)
         self.export_button.pack(fill=X, padx=5, pady=5)
-        self.import_button = Button(self.buttons_frame, text="Import", command=self.import_modlist)
+        self.import_button = Button(self.buttons_frame, text="Import list", command=self.import_modlist)
         self.import_button.pack(fill=X, padx=5, pady=5)
+        self.import_save_button = Button(self.buttons_frame, text="Import save", command=self.import_modlist_from_save)
+        self.import_save_button.pack(fill=X, padx=5, pady=5)
         
         spacer2 = Frame(self.buttons_frame, height=0)
         spacer2.pack(fill=Y, expand=True)
@@ -523,6 +526,48 @@ class Gui:
                     if mod:
                         self.manager.active_mods.append(mod)
             self.update_mod_lists()
+    
+    def import_modlist_from_save(self):
+        try:
+            save_location = self.manager.saves_location()
+        except NotImplementedError:
+            messagebox.showerror("Error", "Saves location is not implemented for this Kenshi version.")
+            return
+        except FileNotFoundError:
+            messagebox.showerror("Error", f"Cannot find {Path(self.manager.kenshi_dir / 'settings.cfg').as_posix()}.\nIt knows where the saves are.")
+            return
+        
+        from tkinter import filedialog
+        # open filedialog to select a .save file or a folder containing .save files
+        file_path = filedialog.askopenfilename(
+            title="Select Save File or Folder",
+            filetypes=[("Save files", "*.save"), ("All files", "*.*")],
+            initialdir=save_location,
+            multiple=False
+        )
+
+        if file_path:
+            file_path = Path(file_path)
+            if file_path.is_dir():
+                # grab the .save file from the folder
+                save_files = list(file_path.glob("*.save"))
+                if not save_files:
+                    messagebox.showerror("Error", "No .save files found in the selected folder.")
+                    return
+                file_path = save_files[0]
+            mods_ready, missing_mods_names = self.manager.get_mods_from_save(file_path)
+            will_load = True
+            if missing_mods_names:
+                missing_mods_str = "\n".join(missing_mods_names)
+                will_load = messagebox.askokcancel(
+                    "Missing Mods",
+                    f"The following mods are missing and will not be loaded:\n{missing_mods_str}\n\n"
+                    "Do you want to continue loading the available mods?"                    
+                )
+            if will_load and mods_ready:
+                self.manager.active_mods.clear()
+                self.manager.active_mods.extend(mods_ready)
+                self.update_mod_lists()
 
     def set_active_mods(self):
         """Save the current active mods"""
