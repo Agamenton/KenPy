@@ -142,28 +142,27 @@ class Gui:
         self.btn_main_game_dir.grid(row=0, column=0, sticky=W, padx=5, pady=5)
         self.btn_main_game_dir.config(width=15)
 
-        self.lb_main_game_dir = Label(self.paths_frame, text=Path(self.manager.kenshi_dir).as_posix())
-        self.lb_main_game_dir.grid(row=0, column=1, sticky=W, padx=5, pady=5)
+        self.lb_main_game_dir = Label(self.paths_frame, text=Path(self.manager.kenshi_dir).as_posix(), anchor=W, justify=LEFT)
+        self.lb_main_game_dir.grid(row=0, column=1, sticky=EW, padx=5, pady=5,)
 
         self.btn_mods_dir = Button(self.paths_frame, text="Mods Dir", command=lambda: self.open_folder(self.manager.kenshi_dir / "mods"))
-        self.btn_mods_dir.grid(row=1, column=0, sticky=W, padx=5, pady=5)
+        self.btn_mods_dir.grid(row=1, column=0, sticky=EW, padx=5, pady=5)
         self.btn_mods_dir.config(width=15)
 
-        self.lb_mods_dir = Label(self.paths_frame, text=Path(self.manager.kenshi_dir / "mods").as_posix())
-        self.lb_mods_dir.grid(row=1, column=1, sticky=W, padx=5, pady=5)
+        self.lb_mods_dir = Label(self.paths_frame, text=Path(self.manager.kenshi_dir / "mods").as_posix(), anchor=W, justify=LEFT)
+        self.lb_mods_dir.grid(row=1, column=1, sticky=EW, padx=5, pady=5)
 
         workshop_dir = get_workshop_of(KENSHI_WORKSHOP_ID)
         if workshop_dir:
+            workshop_dir = Path(workshop_dir).as_posix()
             self.btn_workshop_dir = Button(self.paths_frame, text="Workshop Dir", command=lambda: self.open_folder(workshop_dir))
-            self.btn_workshop_dir.grid(row=2, column=0, sticky=W, padx=5, pady=5)
-            self.btn_workshop_dir.config(width=15)
-            self.lb_workshop_dir = Label(self.paths_frame, text=Path(workshop_dir).as_posix())
-            self.lb_workshop_dir.grid(row=2, column=1, sticky=W, padx=5, pady=5)
         else:
+            workshop_dir = "Not found"
             self.btn_workshop_dir = Button(self.paths_frame, text="Workshop Dir", state=DISABLED)
-            self.btn_workshop_dir.grid(row=2, column=0, sticky=W, padx=5, pady=5)
-            self.lb_workshop_dir = Label(self.paths_frame, text="Not found")
-            self.lb_workshop_dir.grid(row=2, column=1, sticky=W, padx=5, pady=5)
+        self.btn_workshop_dir.grid(row=2, column=0, sticky=W, padx=5, pady=5)
+        self.btn_workshop_dir.config(width=15)
+        self.lb_workshop_dir = Label(self.paths_frame, text=workshop_dir, anchor=W, justify=LEFT)
+        self.lb_workshop_dir.grid(row=2, column=1, sticky=EW, padx=5, pady=5)
 
         # -------------------
         # INFO FRAME
