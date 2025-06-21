@@ -7,7 +7,7 @@ from PIL import Image, ImageTk
 from mod import Mod
 from manager import Manager
 from config import APP_NAME, Config
-from steam_library import open_steam_with_url
+from steam_library import open_steam_with_url, get_workshop_of, KENSHI_WORKSHOP_ID
 
 
 def start_gui(manager: Manager):
@@ -58,23 +58,28 @@ class Gui:
         self.frame.rowconfigure(0, weight=1)     # Single row
 
         # Create frames
+        self.paths_frame = Frame(self.frame)
+        self.paths_frame.grid(row=0, column=0, sticky=EW, padx=5, pady=5)
+        self.paths_frame.columnconfigure(0, weight=2)
+        self.paths_frame.rowconfigure(0, weight=2)
+
         self.info_frame = Frame(self.frame)
-        self.info_frame.grid(row=0, column=0, sticky=NSEW, padx=5, pady=5)
+        self.info_frame.grid(row=1, column=0, sticky=NSEW, padx=5, pady=5)
         self.info_frame.columnconfigure(0, weight=1)
         self.info_frame.rowconfigure(0, weight=1)
 
         self.inactive_mods_frame = Frame(self.frame)
-        self.inactive_mods_frame.grid(row=0, column=1, sticky=NSEW, padx=5, pady=5)
+        self.inactive_mods_frame.grid(row=0, column=1, sticky=NSEW, padx=5, pady=5, rowspan=2)
         self.inactive_mods_frame.columnconfigure(0, weight=1)
         self.inactive_mods_frame.rowconfigure(2, weight=1)
 
         self.active_mods_frame = Frame(self.frame)
-        self.active_mods_frame.grid(row=0, column=2, sticky=NSEW, padx=5, pady=5)
+        self.active_mods_frame.grid(row=0, column=2, sticky=NSEW, padx=5, pady=5, rowspan=2)
         self.active_mods_frame.columnconfigure(0, weight=1)
         self.active_mods_frame.rowconfigure(2, weight=1)
 
         self.buttons_frame = Frame(self.frame)
-        self.buttons_frame.grid(row=0, column=3, sticky=NS, padx=5, pady=5)
+        self.buttons_frame.grid(row=0, column=3, sticky=NS, padx=5, pady=5, rowspan=2)
 
         self.create_widgets()
 
@@ -129,6 +134,37 @@ class Gui:
         self.active_mods_listbox.bind('<B1-Motion>', self.drag_motion)
         self.active_mods_listbox.bind('<ButtonRelease-1>', self.drag_release)
 
+        # -------------------
+        # PATHS FRAME
+        self.btn_main_game_dir = Button(self.paths_frame, text="Game Dir", command=lambda: self.open_folder(self.manager.kenshi_dir))
+        self.btn_main_game_dir.grid(row=0, column=0, sticky=W, padx=5, pady=5)
+        self.btn_main_game_dir.config(width=15)
+
+        self.lb_main_game_dir = Label(self.paths_frame, text=Path(self.manager.kenshi_dir).as_posix())
+        self.lb_main_game_dir.grid(row=0, column=1, sticky=W, padx=5, pady=5)
+
+        self.btn_mods_dir = Button(self.paths_frame, text="Mods Dir", command=lambda: self.open_folder(self.manager.kenshi_dir / "mods"))
+        self.btn_mods_dir.grid(row=1, column=0, sticky=W, padx=5, pady=5)
+        self.btn_mods_dir.config(width=15)
+
+        self.lb_mods_dir = Label(self.paths_frame, text=Path(self.manager.kenshi_dir / "mods").as_posix())
+        self.lb_mods_dir.grid(row=1, column=1, sticky=W, padx=5, pady=5)
+
+        workshop_dir = get_workshop_of(KENSHI_WORKSHOP_ID)
+        if workshop_dir:
+            self.btn_workshop_dir = Button(self.paths_frame, text="Workshop Dir", command=lambda: self.open_folder(workshop_dir))
+            self.btn_workshop_dir.grid(row=2, column=0, sticky=W, padx=5, pady=5)
+            self.btn_workshop_dir.config(width=15)
+            self.lb_workshop_dir = Label(self.paths_frame, text=Path(workshop_dir).as_posix())
+            self.lb_workshop_dir.grid(row=2, column=1, sticky=W, padx=5, pady=5)
+        else:
+            self.btn_workshop_dir = Button(self.paths_frame, text="Workshop Dir", state=DISABLED)
+            self.btn_workshop_dir.grid(row=2, column=0, sticky=W, padx=5, pady=5)
+            self.lb_workshop_dir = Label(self.paths_frame, text="Not found")
+            self.lb_workshop_dir.grid(row=2, column=1, sticky=W, padx=5, pady=5)
+
+        # -------------------
+        # INFO FRAME
         # Create the info text area
         self.info_text = Text(self.info_frame, wrap=WORD)
         self.info_text.grid(row=0, column=0, sticky=NSEW)
@@ -140,6 +176,8 @@ class Gui:
         # Populate the listboxes
         self.update_mod_lists()
 
+        # -------------------
+        # BUTTONS FRAME
         # Create buttons
         self.clear_mods_button = Button(self.buttons_frame, text="Clear", command=self.clear_active_mods)
         self.clear_mods_button.pack(fill=X, padx=5, pady=5)
@@ -390,7 +428,7 @@ class Gui:
         elif widget == self.inactive_mods_listbox:
             mod = self.manager.inactive_mods()[index]
         if mod:
-            context_menu.add_command(label="Open Mod Folder", command=lambda: self.open_folder(mod))
+            context_menu.add_command(label="Open Mod Folder", command=lambda: self.open_mod_folder(mod))
             
             # DEV-NOTE: Gui class probably should not be responsible for this
             if mod.web_url:
@@ -403,11 +441,20 @@ class Gui:
         
         # Show the context menu
         context_menu.post(event.x_root, event.y_root)
-    
-    def open_folder(self, mod: Mod):
+
+    def open_mod_folder(self, mod: Mod):
         """Open the mod's folder in the file explorer"""
+        if mod.path.is_file():
+            path = mod.path.parent
+        else:
+            path = mod.path
+        self.open_folder(path)
+
+    def open_folder(self, path):
+        """Open folder in the file explorer"""
         import os
-        os.startfile(mod.path.parent)
+        path = Path(path)
+        os.startfile(path)
 
     def open_url(self, mod: Mod):
         """Open the mod's URL in the default web browser"""
