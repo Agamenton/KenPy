@@ -56,6 +56,8 @@ class Manager:
             mod = next((m for m in self.all_mods if m.path.name == mod_name), None)
             if mod:
                 self.active_mods.append(mod)
+        
+        self.save_all_mods()    # Tell Kenshi about all mods, so it does not automaticall enable them
 
     def __str__(self):
         return f"Manager(kenshi_dir='{self.kenshi_dir}', all mods cnt='{len(self.all_mods)}', active mods cnt='{len(self.active_mods)}')"
@@ -71,6 +73,12 @@ class Manager:
             f.write('\n'.join([m.path.name for m in self.active_mods]))
             f.write('\n')  # This is what the official manager does
     
+    def save_all_mods(self):
+        all_mods_file = self.kenshi_dir / "data" / "__mods.list"
+        with open(all_mods_file, 'w') as f:
+            f.write('\n'.join([m.path.stem for m in self.all_mods]))
+            f.write('\n')
+
     def inactive_mods(self):
         """
         Get a list of inactive mods (mods that are not in the active_mods list).
