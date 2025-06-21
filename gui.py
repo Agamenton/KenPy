@@ -465,13 +465,14 @@ class Gui:
             mod = self.manager.inactive_mods()[index]
         if mod:
             context_menu.add_command(label="Open Mod Folder", command=lambda: self.open_mod_folder(mod))
+            context_menu.add_command(label="Copy Mod Path", command=lambda: self.copy_mod_path(mod))
+            context_menu.add_separator()
             
             # DEV-NOTE: Gui class probably should not be responsible for this
             if mod.web_url:
                 context_menu.add_command(label="Open URL in Browser", command=lambda: self.open_url(mod))
             if mod.steam_url:
                 context_menu.add_command(label="Open URL in Steam", command=lambda: self.open_steam_url(mod))
-            context_menu.add_command(label="Copy Mod Path", command=lambda: self.copy_mod_path(mod))
             if mod.web_url:
                 context_menu.add_command(label="Copy URL", command=lambda: self.copy_url(mod))
         
