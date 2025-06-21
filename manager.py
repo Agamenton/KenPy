@@ -113,20 +113,73 @@ class Manager:
                 return Path.home() / "AppData" / "Local" / "Kenshi" / "save"
             else:
                 raise NotImplementedError("User save location for non-Windows platforms is not implemented yet.")
+            
+    def get_mods_from_save(self, save_path):
+        """
+        Get a list of mods used in a save file.
+        A save file might contain a mod that is currently not downloaded.
+        :param save_path: Path to the save file.
+        :return: A tuple [0]=list of Mod instances used in correct order; [1]=list of mod names not downloaded
+        """
+        save_path = Path(save_path)
+        if not save_path.exists():
+            raise FileNotFoundError(f"Save file not found: {save_path}")
+        
+        mods = []
+        not_found = []
+        with open(save_path, 'rb') as f:
+            content = f.read()
+
+            # TODO: implement proper decoder of save files
+            # because the following algorithm is so unreliable
+            start = "mods"
+            expected_amount = 9999999
+            realistic_amount = 2000 # I highly doubt there will be more than 2000 mods in a save file
+            start_index = content.find(start.encode())
+            while True:
+                # there is many ".mods" before the actual mods list starts
+                if content[start_index-1] == ord('.'):
+                    start_index = content.find(start.encode(), start_index + 1)
+                else:
+                    # it is possible to find "mods" without a "." infront but it might be a false positive if the next 4bytes are huge number
+                    expected_amount = int.from_bytes(content[start_index+len(start):start_index+len(start)+4], 'little')
+                    if expected_amount < realistic_amount:
+                        break
+
+            start_index += len(start) + 4
+            mod_names = []
+            mod_types = []
+            vanilla_type = 4294967295
+            while len(mod_names) < expected_amount:
+                next_name_len = int.from_bytes(content[start_index:start_index+4], 'little')
+                start_index += 4
+                mod_name = content[start_index:start_index+next_name_len].decode('utf-8', errors='ignore')
+                mod_names.append(mod_name)
+                start_index += next_name_len
+                mod_type = int.from_bytes(content[start_index:start_index+4], 'little')
+                mod_types.append(mod_type)
+                start_index += 4
+                # skip next 8 bytes, I think they might be used as part of length of the mod name?
+                start_index += 8
+                if mod_type != vanilla_type:
+                    # if mod type is not vanilla, it is a mod
+                    mod = next((m for m in self.all_mods if m.name == mod_name), None)
+                    if mod:
+                        mods.append(mod)
+                    else:
+                        not_found.append(mod_name)       
+                
+        return (mods, not_found)
 
 
 if __name__ == "__main__":
     # Example usage
     kenshi_dir = r"E:\SteamLibrary\steamapps\common\Kenshi"
     manager = Manager(kenshi_dir)
-    for mod in manager.all_mods:
+    mods = manager.get_mods_from_save(r"E:\SteamLibrary\steamapps\common\Kenshi\save\final6\quick.save")
+    for mod in mods[0]:
         print(mod.name)
-    print(len(manager.all_mods), "manager.all_mods found.")
-
+    for mod_name in mods[1]:
+        print(f"Mod not found: {mod_name}")
     print("**" * 20)
-    all_mods = find_files(Path(kenshi_dir) / "mods", "*.mod", 1)
-    kenshi_workshop_dir = r"E:\SteamLibrary\steamapps\workshop\content\233860"
-    all_mods += find_files(Path(kenshi_workshop_dir), "*.mod", 1)
-    for mod in all_mods:
-        print(mod.name)
-    print(len(all_mods), "total mods found.")
+    manager.get_mods_from_save(r"E:\SteamLibrary\steamapps\common\Kenshi\save\krals_chosen\quick.save")
