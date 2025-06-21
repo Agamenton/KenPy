@@ -433,6 +433,8 @@ class Gui:
         """Handle right-click context menu for mods"""
         widget = event.widget
         index = widget.nearest(event.y)
+        if not self.was_click_on_item(event, widget):
+            return
 
         if isinstance(widget, Listbox):
             widget.selection_clear(0, END)
