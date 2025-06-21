@@ -89,12 +89,20 @@ class Manager:
         """
         return [mod for mod in self.all_mods if mod not in self.active_mods]
     
-    def toggle_mod(self, mod: Mod):
+    def toggle_mod(self, mod):
         """
         Toggle the active state of a mod.
         If the mod is active, it will be removed from the active_mods list.
         If it is inactive, it will be added to the active_mods list.
         """
+        if isinstance(mod, str):
+            if not mod.endswith(".mod"):
+                mod += ".mod"
+            mod = Path(mod)
+        if isinstance(mod, Path):
+            mod = next((m for m in self.all_mods if m.path.name == mod.name), None)
+        if not mod or not isinstance(mod, Mod):
+            raise ValueError("Mod must be a Mod instance or a valid mod name.")
         if mod in self.active_mods:
             self.active_mods.remove(mod)
         else:

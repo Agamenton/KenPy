@@ -304,12 +304,13 @@ class Gui:
             return
         
         index = self.inactive_mods_listbox.nearest(event.y)
+        mod_name = self.inactive_mods_listbox.get(index)
         
         # If this is a double-click (within 300ms of last click)
         current_time = event.time
         if current_time - self.last_inactive_click < 300 and self.last_inactive_click > 0:
             # Process as double-click
-            self.toggle_mod_at_index(self.inactive_mods_listbox, index, "inactive")
+            self.toggle_mod(mod_name)
             self.last_inactive_click = 0  # Reset
         else:
             # Single click - just select the item
@@ -331,12 +332,13 @@ class Gui:
             return
         
         index = self.active_mods_listbox.nearest(event.y)
+        mod_name = self.active_mods_listbox.get(index)
         
         # If this is a double-click (within 300ms of last click)
         current_time = event.time
         if current_time - self.last_active_click < 300 and self.last_active_click > 0:
             # Process as double-click
-            self.toggle_mod_at_index(self.active_mods_listbox, index, "active")
+            self.toggle_mod(mod_name)
             self.last_active_click = 0  # Reset
         else:
             # Single click - just select the item
@@ -364,21 +366,8 @@ class Gui:
             return True
         return False
     
-    def toggle_mod_at_index(self, listbox, index, list_type):
-        """Toggle mod at the specified index in the specified list"""
-        if list_type == "active":
-            if 0 <= index < len(self.manager.active_mods):
-                mod = self.manager.active_mods[index]
-                self.manager.toggle_mod(mod)
-                # Move focus to inactive list
-                self.inactive_mods_listbox.focus_set()
-        elif list_type == "inactive":
-            if 0 <= index < len(self.manager.inactive_mods()):
-                mod = self.manager.inactive_mods()[index]
-                self.manager.toggle_mod(mod)
-                # Move focus to active list
-                self.active_mods_listbox.focus_set()
-        
+    def toggle_mod(self, mod_name):
+        self.manager.toggle_mod(mod_name)
         self.update_mod_lists()
 
     def update_mod_lists(self):
