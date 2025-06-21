@@ -184,13 +184,17 @@ class Gui:
         self.clear_mods_button.pack(fill=X, padx=5, pady=5)
         self.reset_button = Button(self.buttons_frame, text="Restore", command=self.reset_modlist)
         self.reset_button.pack(fill=X, padx=5, pady=5)
+        
+        spacer = Frame(self.buttons_frame, height=0)
+        spacer.pack(fill=Y, expand=True)
+
         self.export_button = Button(self.buttons_frame, text="Export", command=self.export_modlist)
         self.export_button.pack(fill=X, padx=5, pady=5)
         self.import_button = Button(self.buttons_frame, text="Import", command=self.import_modlist)
         self.import_button.pack(fill=X, padx=5, pady=5)
         
-        spacer = Frame(self.buttons_frame, height=0)
-        spacer.pack(fill=Y, expand=True)
+        spacer2 = Frame(self.buttons_frame, height=0)
+        spacer2.pack(fill=Y, expand=True)
         
         self.save_button = Button(self.buttons_frame, text="Save", command=self.set_active_mods)
         self.save_button.pack(fill=X, padx=5, pady=5, side=BOTTOM)
