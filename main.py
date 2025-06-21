@@ -75,7 +75,6 @@ def select_kenshi_folder():
 def main():
     ...
     kenshi_folder = find_kenshi_folder()
-    kenshi_folder = None
     if kenshi_folder is None:
         messagebox.showinfo(
             "Kenshi Folder Not Found",
@@ -90,6 +89,7 @@ def main():
     manager = Manager(kenshi_folder)
 
     start_gui(manager)
+
 
 if __name__ == "__main__":
     main()
