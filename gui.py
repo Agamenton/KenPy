@@ -99,7 +99,7 @@ class Gui:
         self.search_bar.grid(row=1, column=0, sticky=EW, padx=5, pady=5)
         self.search_bar.bind('<KeyRelease>', lambda e: self.populate_inactive_mods())
 
-        self.inactive_mods_listbox = Listbox(self.inactive_mods_frame)
+        self.inactive_mods_listbox = Listbox(self.inactive_mods_frame, activestyle="none")
         self.inactive_mods_listbox.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
         self.inactive_mods_listbox.bind('<<ListboxSelect>>', self.on_mod_select)
         self.inactive_mods_listbox.bind('<Button-1>', self.handle_inactive_click)
@@ -122,7 +122,7 @@ class Gui:
         self.active_search_bar.grid(row=1, column=0, sticky=EW, padx=5, pady=5)
         self.active_search_bar.bind('<KeyRelease>', lambda e: self.populate_active_mods())
         
-        self.active_mods_listbox = Listbox(self.active_mods_frame)
+        self.active_mods_listbox = Listbox(self.active_mods_frame, activestyle="none")
         self.active_mods_listbox.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
         self.active_mods_listbox.bind('<<ListboxSelect>>', self.on_mod_select)
         self.active_mods_listbox.bind('<Button-3>', self.handle_mod_rightclick)
@@ -296,7 +296,13 @@ class Gui:
     
     def handle_inactive_click(self, event):
         """Handle clicks in the inactive mods listbox"""
-        # Get the item at the click position
+        # Get the nearest item at the click position
+
+        if not self.was_click_on_item(event, self.inactive_mods_listbox):
+            self.inactive_mods_listbox.selection_clear(0, END)
+            self.last_inactive_click = 0
+            return
+        
         index = self.inactive_mods_listbox.nearest(event.y)
         
         # If this is a double-click (within 300ms of last click)
@@ -318,6 +324,12 @@ class Gui:
     def handle_active_click(self, event):
         """Handle clicks in the active mods listbox"""
         # Get the item at the click position
+
+        if not self.was_click_on_item(event, self.active_mods_listbox):
+            self.active_mods_listbox.selection_clear(0, END)
+            self.last_active_click = 0
+            return
+        
         index = self.active_mods_listbox.nearest(event.y)
         
         # If this is a double-click (within 300ms of last click)
@@ -336,6 +348,22 @@ class Gui:
             # Schedule reset of click tracker
             self.root.after(300, lambda: setattr(self, 'last_active_click', 0))
 
+    def was_click_on_item(self, event, listbox):
+        """Check if the click in a listbox was on an item"""
+        index = listbox.nearest(event.y)
+        if index < 0 or index >= listbox.size():
+            return False
+        
+        bbox = listbox.bbox(index)
+        if bbox is None:
+            return False
+        
+        item_y_top = bbox[1]
+        item_y_bot = bbox[1] + bbox[3]
+        if item_y_top <= event.y <= item_y_bot:
+            return True
+        return False
+    
     def toggle_mod_at_index(self, listbox, index, list_type):
         """Toggle mod at the specified index in the specified list"""
         if list_type == "active":
@@ -584,3 +612,10 @@ class Gui:
         self.manager = Manager(self.manager.kenshi_dir)
         self.update_mod_lists()
         self.info_text.delete(1.0, END)
+
+if __name__ == "__main__":
+    kenshi_folder = r"E:\SteamLibrary\steamapps\common\Kenshi"
+    
+    manager = Manager(kenshi_folder)
+
+    start_gui(manager)
