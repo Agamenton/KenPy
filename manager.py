@@ -1,4 +1,5 @@
 from pathlib import Path
+import platform
 
 from steam_library import get_workshop_of, KENSHI_WORKSHOP_ID
 from mod import Mod
@@ -85,7 +86,33 @@ class Manager:
         if mod in self.active_mods:
             self.active_mods.remove(mod)
         else:
-            self.active_mods.append(mod)        
+            self.active_mods.append(mod)
+
+    def saves_location(self):
+        """
+        Get the location of the saves folder.
+        Checks settings.cfg to determine where the saves are stored.
+        If the setting is not found, raises FileNotFoundError.
+        If the saves are stored in users location and system is not Windows, raises NotImplementedError.
+        """
+        settings_file = self.kenshi_dir / "settings.cfg"
+        if not settings_file.exists():
+            raise FileNotFoundError(f"Settings file not found: {settings_file}")
+        is_user_location = 0
+        with open(settings_file, 'r') as f:
+            for line in f:
+                if line.startswith("User save location="):
+                    is_user_location = int(line.split('=')[1].strip())
+                    break
+        if not is_user_location:
+            return self.kenshi_dir / "save"
+        else:
+            # appdata local kenshi save
+            # TODO: make this cross-platform
+            if platform.system() == "Windows":
+                return Path.home() / "AppData" / "Local" / "Kenshi" / "save"
+            else:
+                raise NotImplementedError("User save location for non-Windows platforms is not implemented yet.")
 
 
 if __name__ == "__main__":
