@@ -89,6 +89,16 @@ class Manager:
         """
         return [mod for mod in self.all_mods if mod not in self.active_mods]
     
+    def mod_by_name(self, name):
+        """
+        Get a mod by its name.
+        :param name: The name of the mod (without .mod extension).
+        :return: Mod instance or None if not found.
+        """
+        if not name.endswith(".mod"):
+            name += ".mod"
+        return next((m for m in self.all_mods if m.path.name == name), None)
+    
     def toggle_mod(self, mod):
         """
         Toggle the active state of a mod.

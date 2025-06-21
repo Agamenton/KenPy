@@ -435,13 +435,14 @@ class Gui:
         index = widget.nearest(event.y)
         if not self.was_click_on_item(event, widget):
             return
+        mod_name = widget.get(index)
+        mod = self.manager.mod_by_name(mod_name)
 
         if isinstance(widget, Listbox):
             widget.selection_clear(0, END)
             widget.selection_set(index)
             widget.activate(index)
-            modlist = self.manager.active_mods if widget == self.active_mods_listbox else self.manager.inactive_mods()
-            self.display_mod_info(modlist[index])
+            self.display_mod_info(mod)
         
         if index < 0:
             return
@@ -449,11 +450,6 @@ class Gui:
         # Create context menu
         context_menu = Menu(self.root, tearoff=0)
         # commands: open folder, open URL in browser, open URL in Steam, copy mod path to clipboard, copy URL to clipboard
-        mod = None
-        if widget == self.active_mods_listbox:
-            mod = self.manager.active_mods[index]
-        elif widget == self.inactive_mods_listbox:
-            mod = self.manager.inactive_mods()[index]
         if mod:
             context_menu.add_command(label="Open Mod Folder", command=lambda: self.open_mod_folder(mod))
             context_menu.add_command(label="Copy Mod Path", command=lambda: self.copy_mod_path(mod))
