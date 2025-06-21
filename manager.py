@@ -4,6 +4,25 @@ from steam_library import get_workshop_of, KENSHI_WORKSHOP_ID
 from mod import Mod
 
 
+def find_files(root, pattern, level=0):
+    """
+    Find files in a directory recursively matching a pattern.
+    :param root: The root directory to start searching from.
+    :param pattern: The file pattern to match (e.g., '*.mod').
+    :param level: The current recursion level (0 = check only root then stop recursion).
+    :return: A list of matching file paths.
+    """
+    root = Path(root)
+    matches = []
+    for item in root.iterdir():
+        if item.is_dir():
+            if level:
+                matches.extend(find_files(item, pattern, level - 1))
+        elif item.match(pattern):
+            matches.append(item)
+    return matches
+
+
 class Manager:
     """
     Mod manager for Kenshi.
@@ -24,11 +43,11 @@ class Manager:
         kenshi_mods_folder = Path(kenshi_dir) / "mods"
         kenshi_workshop_folder = get_workshop_of(KENSHI_WORKSHOP_ID)
         if kenshi_mods_folder.exists():
-            self.all_mods.extend(kenshi_mods_folder.rglob("*.mod"))
+            self.all_mods.extend(find_files(kenshi_mods_folder, "*.mod", 1))
         if kenshi_workshop_folder:
             kenshi_workshop_folder = Path(kenshi_workshop_folder)
             if kenshi_workshop_folder.exists():
-                self.all_mods.extend(kenshi_workshop_folder.rglob("*.mod"))
+                self.all_mods.extend(find_files(kenshi_workshop_folder, "*.mod", 1))
         self.all_mods = [Mod(mod) for mod in self.all_mods if mod.is_file()]
 
         self.active_mods: list[Mod] = []
@@ -73,14 +92,14 @@ if __name__ == "__main__":
     # Example usage
     kenshi_dir = r"E:\SteamLibrary\steamapps\common\Kenshi"
     manager = Manager(kenshi_dir)
-    print(manager)
     for mod in manager.all_mods:
-        print(mod)
-    print("Active Mods:")
-    for mod in manager.active_mods:
-        print(mod)
-    inactive_mods = manager.inactive_mods()
-    print("Inactive Mods:")
-    for mod in inactive_mods:
         print(mod.name)
-    print(len(inactive_mods), "inactive mods found.")
+    print(len(manager.all_mods), "manager.all_mods found.")
+
+    print("**" * 20)
+    all_mods = find_files(Path(kenshi_dir) / "mods", "*.mod", 1)
+    kenshi_workshop_dir = r"E:\SteamLibrary\steamapps\workshop\content\233860"
+    all_mods += find_files(Path(kenshi_workshop_dir), "*.mod", 1)
+    for mod in all_mods:
+        print(mod.name)
+    print(len(all_mods), "total mods found.")
