@@ -413,16 +413,19 @@ class Gui:
     def on_mod_select(self, event):
         """Handle mod selection events"""
         widget = event.widget
-        if widget == self.active_mods_listbox:
+
+        if widget == self.active_mods_listbox or widget == self.inactive_mods_listbox:
             index = widget.curselection()
-            if index:
-                mod = self.manager.active_mods[index[0]]
-                self.display_mod_info(mod)
-        elif widget == self.inactive_mods_listbox:
-            index = widget.curselection()
-            if index:
-                mod = self.manager.inactive_mods()[index[0]]
-                self.display_mod_info(mod)
+            if not index:
+                return
+            index = index[0]  # Get the first selected index
+            mod_name = widget.get(index)
+            if not mod_name:
+                return
+            mod = self.manager.mod_by_name(mod_name)
+            if not mod:
+                return
+            self.display_mod_info(mod)
     
     def display_mod_info(self, mod: Mod):
         """Display information about the selected mod"""
