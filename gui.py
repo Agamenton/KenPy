@@ -55,13 +55,14 @@ class Gui:
         self.frame.columnconfigure(1, weight=1)  # Inactive mods
         self.frame.columnconfigure(2, weight=1)  # Active mods
         self.frame.columnconfigure(3, weight=0)  # Buttons (fixed width)
-        self.frame.rowconfigure(0, weight=1)     # Single row
+        self.frame.rowconfigure(0, weight=0)     # Top row (paths and lists)
+        self.frame.rowconfigure(1, weight=1)     # Bottom row (info frame)
 
         # Create frames
         self.paths_frame = Frame(self.frame)
         self.paths_frame.grid(row=0, column=0, sticky=EW, padx=5, pady=5)
-        self.paths_frame.columnconfigure(0, weight=2)
-        self.paths_frame.rowconfigure(0, weight=2)
+        self.paths_frame.columnconfigure(0, weight=0)
+        self.paths_frame.columnconfigure(1, weight=1)
 
         self.info_frame = Frame(self.frame)
         self.info_frame.grid(row=1, column=0, sticky=NSEW, padx=5, pady=5)
