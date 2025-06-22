@@ -99,13 +99,24 @@ class Gui:
         self.search_bar.grid(row=1, column=0, sticky=EW, padx=5, pady=5)
         self.search_bar.bind('<KeyRelease>', lambda e: self.populate_inactive_mods())
 
-        self.inactive_mods_listbox = Listbox(self.inactive_mods_frame, activestyle="none")
-        self.inactive_mods_listbox.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
+        # Create container frame for listbox and scrollbar
+        self.inactive_list_container = Frame(self.inactive_mods_frame)
+        self.inactive_list_container.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
+        self.inactive_list_container.grid_rowconfigure(0, weight=1)
+        self.inactive_list_container.grid_columnconfigure(0, weight=1)
+        
+        self.inactive_mods_listbox = Listbox(self.inactive_list_container, activestyle="none")
+        self.inactive_mods_listbox.grid(row=0, column=0, sticky=NSEW)
+        
+        # Add scrollbar
+        self.inactive_scrollbar = Scrollbar(self.inactive_list_container, command=self.inactive_mods_listbox.yview)
+        self.inactive_scrollbar.grid(row=0, column=1, sticky=NS)
+        self.inactive_mods_listbox.config(yscrollcommand=self.inactive_scrollbar.set)
+        
+        # Existing bindings
         self.inactive_mods_listbox.bind('<<ListboxSelect>>', self.on_mod_select)
         self.inactive_mods_listbox.bind('<Button-1>', self.handle_inactive_click)
         self.inactive_mods_listbox.bind('<Button-3>', self.handle_mod_rightclick)
-
-        # Highlight on hover
         self.inactive_mods_listbox.bind('<Motion>', self.on_listbox_hover)
         self.inactive_mods_listbox.bind('<Leave>', self.on_listbox_leave)
 
@@ -122,16 +133,25 @@ class Gui:
         self.active_search_bar.grid(row=1, column=0, sticky=EW, padx=5, pady=5)
         self.active_search_bar.bind('<KeyRelease>', lambda e: self.populate_active_mods())
         
-        self.active_mods_listbox = Listbox(self.active_mods_frame, activestyle="none")
-        self.active_mods_listbox.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
+        # Create container frame for listbox and scrollbar
+        self.active_list_container = Frame(self.active_mods_frame)
+        self.active_list_container.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
+        self.active_list_container.grid_rowconfigure(0, weight=1)
+        self.active_list_container.grid_columnconfigure(0, weight=1)
+        
+        self.active_mods_listbox = Listbox(self.active_list_container, activestyle="none")
+        self.active_mods_listbox.grid(row=0, column=0, sticky=NSEW)
+        
+        # Add scrollbar
+        self.active_scrollbar = Scrollbar(self.active_list_container, command=self.active_mods_listbox.yview)
+        self.active_scrollbar.grid(row=0, column=1, sticky=NS)
+        self.active_mods_listbox.config(yscrollcommand=self.active_scrollbar.set)
+        
+        # Existing bindings
         self.active_mods_listbox.bind('<<ListboxSelect>>', self.on_mod_select)
         self.active_mods_listbox.bind('<Button-3>', self.handle_mod_rightclick)
-        
-        # Highlight on hover
         self.active_mods_listbox.bind('<Motion>', self.on_listbox_hover)
         self.active_mods_listbox.bind('<Leave>', self.on_listbox_leave)
-
-        # Add drag-and-drop bindings for active mods list
         self.active_mods_listbox.bind('<ButtonPress-1>', self.drag_start)
         self.active_mods_listbox.bind('<B1-Motion>', self.drag_motion)
         self.active_mods_listbox.bind('<ButtonRelease-1>', self.drag_release)
