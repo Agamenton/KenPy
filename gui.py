@@ -271,7 +271,7 @@ class Gui:
                 self.manager.active_mods.insert(target_manager_index, self.drag_item)
                 
                 # Update the list display
-                self.populate_active_mods()
+                self.update_listbox_without_reset(self.active_mods_listbox)
                 
                 # Select the moved item
                 event.widget.selection_clear(0, END)
@@ -413,6 +413,24 @@ class Gui:
         self.active_mods_listbox.yview_moveto(active_scroll[0])
         
         self.root.update_idletasks()
+
+    def update_listbox_without_reset(self, listbox):
+        """
+        Update the listbox without resetting the scroll position.
+        This should be useful when dragging mods in active mods listbox, so it does not reset the scroll position.
+        """
+        selected = listbox.curselection()
+        scroll_pos = listbox.yview()
+
+        if listbox == self.active_mods_listbox:
+            self.populate_active_mods()
+        elif listbox == self.inactive_mods_listbox:
+            self.populate_inactive_mods()
+
+        if selected:
+            listbox.selection_set(selected[0])
+            listbox.activate(selected[0])
+        listbox.yview_moveto(scroll_pos[0])
     
     def populate_active_mods(self):
         """Populate the active mods listbox"""
