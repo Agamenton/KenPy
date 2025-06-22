@@ -69,6 +69,7 @@ class Gui:
         self.info_frame.grid(row=1, column=0, sticky=NSEW, padx=5, pady=5)
         self.info_frame.columnconfigure(0, weight=1)
         self.info_frame.rowconfigure(0, weight=1)
+        self.current_img = None
 
         self.inactive_mods_frame = Frame(self.frame)
         self.inactive_mods_frame.grid(row=0, column=1, sticky=NSEW, padx=5, pady=5, rowspan=2)
@@ -183,16 +184,6 @@ class Gui:
         self.btn_workshop_dir.config(width=15)
         self.lb_workshop_dir = Label(self.paths_frame, text=workshop_dir, anchor=W, justify=LEFT)
         self.lb_workshop_dir.grid(row=2, column=1, sticky=EW, padx=5, pady=5)
-
-        # -------------------
-        # INFO FRAME
-        # Create the info text area
-        self.info_text = Text(self.info_frame, wrap=WORD)
-        self.info_text.grid(row=0, column=0, sticky=NSEW)
-        
-        scrollbar = Scrollbar(self.info_frame, command=self.info_text.yview)
-        scrollbar.grid(row=0, column=1, sticky=NS)
-        self.info_text.config(yscrollcommand=scrollbar.set)
 
         # Populate the listboxes
         self.update_mod_lists()
@@ -474,9 +465,77 @@ class Gui:
             self.display_mod_info(mod)
     
     def display_mod_info(self, mod: Mod):
-        """Display information about the selected mod"""
-        self.info_text.delete(1.0, END)
-        self.info_text.insert(END, str(mod))
+        self.clear_info()
+        core_frame = Frame(self.info_frame)
+        core_frame.grid(row=0, column=0, sticky=NSEW, padx=5, pady=5)
+        core_frame.columnconfigure(0, weight=1)
+        core_frame.rowconfigure(0, weight=1)
+
+        image_label = Label(core_frame, text="Mod Image:")
+        image_label.grid(row=0, column=0, sticky=W, padx=5, pady=5)
+        if mod.preview_img_path and mod.preview_img_path.exists():
+            try:
+                img = Image.open(mod.preview_img_path)
+                max_size = (300, 200)
+                img.thumbnail(max_size, Image.Resampling.LANCZOS)
+                self.current_img = ImageTk.PhotoImage(img)
+                image = Label(core_frame, image=self.current_img)
+                image.grid(row=0, column=0, sticky=W, padx=5, pady=5)
+            except Exception as e:
+                print(f"Error loading image: {e}")
+        else:
+            image = Label(core_frame, text="No preview image available")
+            image.grid(row=0, column=0, sticky=W, padx=5, pady=5)
+        core_info_frame = Frame(core_frame)
+        core_info_frame.grid(row=0, column=1, sticky=NSEW, padx=5, pady=5)
+        core_info_frame.columnconfigure(0, weight=1)
+        core_info_frame.rowconfigure(0, weight=1)
+        core_data = (
+            ("Name", mod.name),
+            ("Version", mod.version),
+            ("Author", mod.author),
+            ("Date Added", mod.date_added.strftime("%Y-%m-%d %H:%M:%S")),
+        )
+        for i, (label_text, value) in enumerate(core_data):
+            label = Label(core_info_frame, text=f"{label_text}:", anchor=W, font=("Arial", 10, "bold"))
+            label.grid(row=i, column=0, sticky=W, padx=5, pady=5)
+            value_label = Label(core_info_frame, text=value)
+            value_label.grid(row=i, column=1, sticky=W, padx=5, pady=5)
+        
+        description_frame = Frame(self.info_frame)
+        description_frame.grid(row=1, column=0, sticky=NSEW, padx=5, pady=5)
+        description_frame.columnconfigure(0, weight=1)
+        description_frame.rowconfigure(0, weight=1)
+        description_text = Text(description_frame, wrap=WORD, height=10, width=50)
+        description_text.insert(END, mod.description)
+        description_text.config(state=DISABLED)  # Make it read-only
+        description_text.grid(row=0, column=0, sticky=NSEW, padx=5, pady=5)
+        description_scrollbar = Scrollbar(description_frame, command=description_text.yview)
+        description_scrollbar.grid(row=0, column=1, sticky=NS)
+        description_text.config(yscrollcommand=description_scrollbar.set)
+
+        # paths
+        paths_frame = Frame(self.info_frame)
+        paths_frame.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
+        paths_frame.columnconfigure(0, weight=1)
+        paths_frame.rowconfigure(0, weight=1)
+        paths = (
+            ("Local Path", mod.path.as_posix()),
+            ("Web URL", mod.web_url if mod.web_url else "N/A"),
+            ("Steam URL", mod.steam_url if mod.steam_url else "N/A"),
+        )
+        for i, (label_text, value) in enumerate(paths):
+            label = Label(paths_frame, text=f"{label_text}:", anchor=W, font=("Arial", 10, "bold"))
+            label.grid(row=i, column=0, sticky=W, padx=5, pady=5)
+            value_label = Label(paths_frame, text=value)
+            value_label.grid(row=i, column=1, sticky=W, padx=5, pady=5)
+
+    
+    def clear_info(self):
+        """Clear the mod information display"""
+        for widget in self.info_frame.winfo_children():
+            widget.destroy()
+        self.current_img = None
 
     def handle_mod_rightclick(self, event):
         """Handle right-click context menu for mods"""
@@ -642,13 +701,13 @@ class Gui:
         """Clear the active mods list"""
         self.manager.active_mods.clear()
         self.update_mod_lists()
-        self.info_text.delete(1.0, END)
+        self.clear_info()
 
     def reset_modlist(self):
         """Reset the mod manager to its initial state"""
         self.manager = Manager(self.manager.kenshi_dir)
         self.update_mod_lists()
-        self.info_text.delete(1.0, END)
+        self.clear_info()
 
 if __name__ == "__main__":
     kenshi_folder = r"E:\SteamLibrary\steamapps\common\Kenshi"
