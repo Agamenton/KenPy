@@ -65,7 +65,8 @@ class Gui:
         self.paths_frame.columnconfigure(0, weight=0)
         self.paths_frame.columnconfigure(1, weight=1)
 
-        self.info_frame = Frame(self.frame)
+        self.info_frame_width = 620
+        self.info_frame = Frame(self.frame, width=self.info_frame_width)
         self.info_frame.grid(row=1, column=0, sticky=NSEW, padx=5, pady=5)
         self.info_frame.columnconfigure(0, weight=1)
         self.info_frame.rowconfigure(0, weight=1)
@@ -463,44 +464,59 @@ class Gui:
             if not mod:
                 return
             self.display_mod_info(mod)
-    
+
     def display_mod_info(self, mod: Mod):
         self.clear_info()
         core_frame = Frame(self.info_frame)
         core_frame.grid(row=0, column=0, sticky=NSEW, padx=5, pady=5)
-        core_frame.columnconfigure(0, weight=1)
+        core_frame.columnconfigure(0, weight=0)
+        core_frame.columnconfigure(1, weight=1)
         core_frame.rowconfigure(0, weight=1)
 
-        image_label = Label(core_frame, text="Mod Image:")
-        image_label.grid(row=0, column=0, sticky=W, padx=5, pady=5)
+        half_width = int(self.info_frame_width / 2)
+        # Create fixed-size image container
+        image_container = Frame(core_frame, width=half_width, height=210)
+        image_container.grid(row=0, column=0, padx=5, pady=5, sticky=NSEW)
+        image_container.grid_propagate(False)  # Prevent resizing
+        image_container.columnconfigure(0, weight=1)
+        image_container.rowconfigure(0, weight=1)
+
+        # Display image or placeholder within container
         if mod.preview_img_path and mod.preview_img_path.exists():
             try:
                 img = Image.open(mod.preview_img_path)
                 max_size = (300, 200)
                 img.thumbnail(max_size, Image.Resampling.LANCZOS)
                 self.current_img = ImageTk.PhotoImage(img)
-                image = Label(core_frame, image=self.current_img)
-                image.grid(row=0, column=0, sticky=W, padx=5, pady=5)
+                image_label = Label(image_container, image=self.current_img)
+                image_label.grid(row=0, column=0, sticky=NSEW)  # Center the image
             except Exception as e:
                 print(f"Error loading image: {e}")
+                Label(image_container, text="Error loading image").grid(row=0, column=0, sticky=NSEW)
         else:
-            image = Label(core_frame, text="No preview image available")
-            image.grid(row=0, column=0, sticky=W, padx=5, pady=5)
-        core_info_frame = Frame(core_frame)
-        core_info_frame.grid(row=0, column=1, sticky=NSEW, padx=5, pady=5)
-        core_info_frame.columnconfigure(0, weight=1)
-        core_info_frame.rowconfigure(0, weight=1)
+            Label(image_container, text="No preview image available").grid(row=0, column=0, sticky=NSEW)
+        
+        core_info_frame = Frame(core_frame, width=half_width, height=210)
+        core_info_frame.grid(row=0, column=1, sticky=W, padx=5, pady=5)
+        core_info_frame.grid_propagate(False)  # Prevent resizing
         core_data = (
             ("Name", mod.name),
             ("Version", mod.version),
             ("Author", mod.author),
-            ("Date Added", mod.date_added.strftime("%Y-%m-%d %H:%M:%S")),
+            ("Date Added", mod.date_added.strftime("%b-%d-%Y %H:%M:%S")),
         )
+
+        core_info_frame.columnconfigure(0, weight=1)
         for i, (label_text, value) in enumerate(core_data):
-            label = Label(core_info_frame, text=f"{label_text}:", anchor=W, font=("Arial", 10, "bold"))
-            label.grid(row=i, column=0, sticky=W, padx=5, pady=5)
-            value_label = Label(core_info_frame, text=value)
-            value_label.grid(row=i, column=1, sticky=W, padx=5, pady=5)
+            individual_frame = Frame(core_info_frame)
+            individual_frame.grid(row=i, column=0, sticky=W, padx=2, pady=1)
+            individual_frame.columnconfigure(0, weight=1)
+            individual_frame.columnconfigure(1, weight=0)
+            label = Label(individual_frame, text=f"{label_text}:", anchor=W, font=("Arial", 10, "bold"))
+            label.grid(row=i, column=0, sticky=W, padx=2, pady=1)
+            label.config(width=15)
+            value_label = Label(individual_frame, text=value, anchor=W, justify=LEFT)
+            value_label.grid(row=i, column=1, sticky=EW, padx=2, pady=1)
         
         description_frame = Frame(self.info_frame)
         description_frame.grid(row=1, column=0, sticky=NSEW, padx=5, pady=5)
@@ -519,18 +535,28 @@ class Gui:
         paths_frame.grid(row=2, column=0, sticky=NSEW, padx=5, pady=5)
         paths_frame.columnconfigure(0, weight=1)
         paths_frame.rowconfigure(0, weight=1)
+        max_len = 70
+        part_len = int(max_len/2-2)
+        mod_path = mod.path.as_posix() if len(mod.path.as_posix()) < max_len else f"{mod.path.as_posix()[:part_len]}...{mod.path.as_posix()[-part_len:]}"
+        mod_url = (mod.web_url if len(mod.web_url) < max_len else f"{mod.web_url[:part_len]}...{mod.web_url[-part_len:]}") if mod.web_url else "N/A"
+        mod_steam_url = (mod.steam_url if len(mod.steam_url) < max_len else f"{mod.steam_url[:part_len]}...{mod.steam_url[-part_len:]}") if mod.steam_url else "N/A"
         paths = (
-            ("Local Path", mod.path.as_posix()),
-            ("Web URL", mod.web_url if mod.web_url else "N/A"),
-            ("Steam URL", mod.steam_url if mod.steam_url else "N/A"),
+            ("Local Path", mod_path),
+            ("Web URL", mod_url),
+            ("Steam URL", mod_steam_url),
         )
+        min_width = max(len(label_text) for label_text, _ in paths) + 2  # +2 for padding
         for i, (label_text, value) in enumerate(paths):
-            label = Label(paths_frame, text=f"{label_text}:", anchor=W, font=("Arial", 10, "bold"))
-            label.grid(row=i, column=0, sticky=W, padx=5, pady=5)
-            value_label = Label(paths_frame, text=value)
-            value_label.grid(row=i, column=1, sticky=W, padx=5, pady=5)
+            individual_frame = Frame(paths_frame)
+            individual_frame.grid(row=i, column=0, sticky=W, padx=5, pady=1)
+            individual_frame.columnconfigure(0, weight=0)
+            individual_frame.columnconfigure(1, weight=1)
+            label = Label(individual_frame, text=f"{label_text}:", anchor=W, font=("Arial", 10, "bold"), width=min_width)
+            label.grid(row=i, column=0, sticky=W, padx=5)
+            value_label = Label(individual_frame, text=value, anchor=W, justify=LEFT)
+            value_label.grid(row=i, column=1, sticky=W, padx=5)
+        
 
-    
     def clear_info(self):
         """Clear the mod information display"""
         for widget in self.info_frame.winfo_children():
