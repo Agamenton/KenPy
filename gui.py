@@ -514,7 +514,6 @@ class Gui:
             individual_frame.columnconfigure(1, weight=0)
             label = Label(individual_frame, text=f"{label_text}:", anchor=W, font=("Arial", 10, "bold"))
             label.grid(row=i, column=0, sticky=W, padx=2, pady=1)
-            label.config(width=15)
             value_label = Label(individual_frame, text=value, anchor=W, justify=LEFT)
             value_label.grid(row=i, column=1, sticky=EW, padx=2, pady=1)
         
