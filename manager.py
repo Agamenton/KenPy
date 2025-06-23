@@ -5,6 +5,17 @@ from steam_library import get_workshop_of, KENSHI_WORKSHOP_ID
 from mod import Mod
 
 
+BASE_MODS = [
+    "gamedata.base",
+    "rebirth.mod",
+    "Newwworld.mod",
+    "Dialogue.mod",
+]
+
+
+BASE_MOD_NAMES = [Path(mod).stem for mod in BASE_MODS]
+
+
 def find_files(root, pattern, level=0):
     """
     Find files in a directory recursively matching a pattern.
