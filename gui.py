@@ -194,7 +194,7 @@ class Gui:
         # Create buttons
         self.clear_mods_button = Button(self.buttons_frame, text="Clear", command=self.clear_active_mods)
         self.clear_mods_button.pack(fill=X, padx=5, pady=5)
-        self.reset_button = Button(self.buttons_frame, text="Restore", command=self.reset_modlist)
+        self.reset_button = Button(self.buttons_frame, text="Reload", command=self.reset_modlist)
         self.reset_button.pack(fill=X, padx=5, pady=5)
 
         spacer = Frame(self.buttons_frame, height=0)
