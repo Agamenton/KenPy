@@ -98,7 +98,7 @@ class Manager:
     def __repr__(self):
         return f"Manager('{self.kenshi_dir}', {len(self.all_mods)}, {len(self.active_mods)})"
     
-    def sort_active_mods(self):
+    def sorted_active_mods(self):
         """
         Topological sort of the active mods.
         It will try to keep the same order.
@@ -118,7 +118,15 @@ class Manager:
             mod = next((m for m in self.active_mods if m.path.name == mod_name), None)
             if mod:
                 sorted_active_mods.append(mod)
-        self.active_mods = sorted_active_mods
+        return sorted_active_mods
+    
+    def sort_active_mods(self):
+        """
+        Sort the active mods in a topological order based on their dependencies.
+        This will modify the active_mods list.
+        """
+        sorted_mods = self.sorted_active_mods()
+        self.active_mods = sorted_mods
     
     def save_active_mods(self):
         """
