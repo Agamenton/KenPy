@@ -33,6 +33,7 @@ def start_gui(manager: Manager):
 
     root.mainloop()
 
+
 class Gui:
     def __init__(self, root: Tk, manager: Manager):
         self.root = root
@@ -209,6 +210,12 @@ class Gui:
         
         spacer2 = Frame(self.buttons_frame, height=0)
         spacer2.pack(fill=Y, expand=True)
+
+        self.sort_button = Button(self.buttons_frame, text="Sort", command=self.sort_active_mods)
+        self.sort_button.pack(fill=X, padx=5, pady=5)
+
+        spacer3 = Frame(self.buttons_frame, height=0)
+        spacer3.pack(fill=Y, expand=True)
         
         self.save_button = Button(self.buttons_frame, text="Save", command=self.set_active_mods)
         self.save_button.pack(fill=X, padx=5, pady=5, side=BOTTOM)
@@ -638,6 +645,10 @@ class Gui:
     # MOD LIST OPERATIONS
     # ======================
     
+    def sort_active_mods(self):
+        self.manager.sort_active_mods()
+        self.update_mod_lists()
+
     def export_modlist(self):
         """Export the current active mods to a text file"""
         modlist_data = "\n".join(mod.path.name for mod in self.manager.active_mods)

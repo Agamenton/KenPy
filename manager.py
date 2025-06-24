@@ -16,6 +16,24 @@ BASE_MODS = [
 BASE_MOD_NAMES = [Path(mod).stem for mod in BASE_MODS]
 
 
+def topological_sort(graph: dict[str, list[str]]) -> list[str]:
+    result = []
+    visited = set()
+
+    def visit(node):
+        if node in visited:
+            return
+        visited.add(node)
+        for neighbor in graph[node]:
+            visit(neighbor)
+        result.append(node)
+
+    for node in graph.keys():
+        visit(node)
+
+    return result
+
+
 def find_files(root, pattern, level=0):
     """
     Find files in a directory recursively matching a pattern.
@@ -79,6 +97,28 @@ class Manager:
     
     def __repr__(self):
         return f"Manager('{self.kenshi_dir}', {len(self.all_mods)}, {len(self.active_mods)})"
+    
+    def sort_active_mods(self):
+        """
+        Topological sort of the active mods.
+        It will try to keep the same order.
+        If a mod has list of required mods, they will be placed before the mod itself.
+        """
+        def to_graph(mods):
+            graph = {mod.path.name: [] for mod in mods}
+            for mod in mods:
+                graph[mod.path.name] = [req for req in mod.requires if req not in BASE_MODS]
+            return graph
+        
+        graph = to_graph(self.active_mods)
+
+        sorted_mods = topological_sort(graph)
+        sorted_active_mods = []
+        for mod_name in sorted_mods:
+            mod = next((m for m in self.active_mods if m.path.name == mod_name), None)
+            if mod:
+                sorted_active_mods.append(mod)
+        self.active_mods = sorted_active_mods
     
     def save_active_mods(self):
         """
