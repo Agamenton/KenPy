@@ -2,18 +2,7 @@ from pathlib import Path
 import platform
 
 from steam_library import get_workshop_of, KENSHI_WORKSHOP_ID
-from mod import Mod
-
-
-BASE_MODS = [
-    "gamedata.base",
-    "rebirth.mod",
-    "Newwworld.mod",
-    "Dialogue.mod",
-]
-
-
-BASE_MOD_NAMES = [Path(mod).stem for mod in BASE_MODS]
+from mod import Mod, BASE_MODS
 
 
 def topological_sort(graph: dict[str, list[str]]) -> list[str]:

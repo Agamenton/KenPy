@@ -11,6 +11,17 @@ FILE_TYPE_MOD = 16
 FILE_TYPE_MMOD = 17
 
 
+BASE_MODS = [
+    "gamedata.base",
+    "rebirth.mod",
+    "Newwworld.mod",
+    "Dialogue.mod",
+]
+
+
+BASE_MOD_NAMES = [Path(mod).stem for mod in BASE_MODS]
+
+
 class Mod:
     def __init__(self, path):
         self.path = Path(path)
@@ -74,6 +85,7 @@ class Mod:
         self.author = self.read_string()
         self.description = self.read_string()
         self.requires = self.read_strings()
+        self.requires = [req for req in self.requires if req not in BASE_MODS]  # remove base mods from requires
         self.references = self.read_strings()
     
     def _get_steam_info(self):
