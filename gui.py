@@ -121,6 +121,7 @@ class Gui:
         self.inactive_mods_listbox.bind('<Button-3>', self.handle_mod_rightclick)
         self.inactive_mods_listbox.bind('<Motion>', self.on_listbox_hover)
         self.inactive_mods_listbox.bind('<Leave>', self.on_listbox_leave)
+        self.inactive_mods_listbox.bind('<KeyRelease>', self.on_keypress_listbox)
 
         # -------------------
         # ACTIVE MODS FRAME
@@ -507,6 +508,19 @@ class Gui:
             self.inactive_mods_listbox.insert(END, mod.name)
         self.inactive_count_value.config(text=str(len(self.manager.inactive_mods())))
     
+    def on_keypress_listbox(self, event):
+        """Handle keypress events in the listboxes"""
+        widget = event.widget
+        if widget == self.active_mods_listbox or widget == self.inactive_mods_listbox:
+            if event.keysym == 'Return':
+                # Simulate a click on the selected item
+                index = widget.curselection()
+                if index:
+                    index = index[0]
+                    mod_name = widget.get(index)
+                    if mod_name:
+                        self.toggle_mod(mod_name)
+
     # ======================
     # MOD INFORMATION DISPLAY
     # ======================
