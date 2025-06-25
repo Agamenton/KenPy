@@ -42,6 +42,8 @@ class Gui:
     def __init__(self, root: Tk, manager: Manager):
         self.root = root
         self.manager = manager
+        self.needs_save = False
+        self.needs_reload = False
         
         # Track last click times for each listbox
         self.last_inactive_click = 0
@@ -516,6 +518,7 @@ class Gui:
     
     def toggle_mod(self, mod_name, update=True):
         self.manager.toggle_mod(mod_name)
+        self.needs_save = True
         if update:
             self.update_mod_lists()
             self.reset_last_active_mod_idx()
@@ -907,6 +910,7 @@ class Gui:
     def set_active_mods(self):
         """Save the current active mods"""
         self.manager.save_active_mods()
+        self.needs_save = False
 
     def clear_active_mods(self):
         """Clear the active mods list"""
