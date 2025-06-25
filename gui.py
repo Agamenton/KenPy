@@ -91,6 +91,8 @@ class Gui:
         self.last_selected_active_mod_idx = None
         self.current_active_selection = []
 
+        self.listbox_selected_item_bg = COLOR_SELECT_DARK
+
         self.buttons_frame = Frame(self.frame)
         self.buttons_frame.grid(row=0, column=3, sticky=NS, padx=5, pady=5, rowspan=2)
 
@@ -250,17 +252,17 @@ class Gui:
             self.root.tk_setPalette(background="#3E3E3E", foreground="#FFFCD6")
             self.root.config(bg="#3E3E3E")
             self.mode_checkbox.config(fg="#FFFCD6", bg="#3E3E3E", selectcolor="#3E3E3E")
-            listbox_selected_item_bg = COLOR_SELECT_DARK
+            self.listbox_selected_item_bg = COLOR_SELECT_DARK
         else:
             self.root.tk_setPalette(background="#FFFFFF", foreground="#000000")
             self.root.config(bg="#FFFFFF")
             self.mode_checkbox.config(fg="#000000", bg="#FFFFFF", selectcolor="#FFFFFF")
-            listbox_selected_item_bg = COLOR_SELECT_LIGHT
+            self.listbox_selected_item_bg = COLOR_SELECT_LIGHT
         self.active_mods_listbox.config(
-            selectbackground=listbox_selected_item_bg
+            selectbackground=self.listbox_selected_item_bg
         )
         self.inactive_mods_listbox.config(
-            selectbackground=listbox_selected_item_bg
+            selectbackground=self.listbox_selected_item_bg
         )
         
         # Update info frame background
@@ -407,14 +409,12 @@ class Gui:
                     start = min(prev, index)
                     end = max(prev, index)
                     self.inactive_mods_listbox.selection_set(start, end)
-                    self.current_inactive_selection = list(range(start, end + 1))
+                    self.current_inactive_selection.extend(list(range(start, end + 1)))
             elif event.state & 0x0004:  # Control key is held
                 # If Control is held, add/remove the item in the selection
                 if index in self.current_inactive_selection:
-                    # self.inactive_mods_listbox.selection_clear(index)
                     self.current_inactive_selection.remove(index)
                 else:
-                    # self.inactive_mods_listbox.selection_set(index)
                     self.current_inactive_selection.append(index)
                 self.last_selected_inactive_mod_idx = index
             else:
@@ -423,6 +423,9 @@ class Gui:
             
                 # Schedule reset of click tracker
                 self.root.after(300, lambda: setattr(self, 'last_inactive_click', 0))
+                
+            # update background color of items
+            self.update_mod_colors(self.inactive_mods_listbox, self.current_inactive_selection)
 
     def handle_active_click(self, event):
         """Handle clicks in the active mods listbox"""
@@ -455,14 +458,12 @@ class Gui:
                     start = min(prev, index)
                     end = max(prev, index)
                     self.active_mods_listbox.selection_set(start, end)
-                    self.current_active_selection = list(range(start, end + 1))
+                    self.current_active_selection.extend(list(range(start, end + 1)))
             elif event.state & 0x0004:  # Control key is held
                 # If Control is held, add/remove the item in the selection
                 if index in self.current_active_selection:
-                    self.active_mods_listbox.selection_clear(index)
                     self.current_active_selection.remove(index)
                 else:
-                    self.active_mods_listbox.selection_set(index)
                     self.current_active_selection.append(index)
                 self.last_selected_active_mod_idx = index
             else:
@@ -471,6 +472,19 @@ class Gui:
             
                 # Schedule reset of click tracker
                 self.root.after(300, lambda: setattr(self, 'last_active_click', 0))
+            
+            # update background color of items
+            self.update_mod_colors(self.active_mods_listbox, self.current_active_selection)
+
+    def update_mod_colors(self, listbox, selection):
+        """Update the background color of items in the listbox based on their selection state"""
+        for i in range(listbox.size()):
+            if listbox.itemcget(i, 'bg') in ('orange', 'red'):
+                continue
+            if i in selection:
+                listbox.itemconfig(i, {'bg': self.listbox_selected_item_bg})
+            else:
+                listbox.itemconfig(i, {'bg': self.root.cget('bg')})
 
     def was_click_on_item(self, event, listbox):
         """Check if the click in a listbox was on an item"""
