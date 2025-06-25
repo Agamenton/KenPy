@@ -18,6 +18,9 @@ COLOR_DARK_SECONDARY = "#FFFCD6"
 COLOR_LIGHT_PRIMARY = "#FFFFFF"
 COLOR_LIGHT_SECONDARY = "#000000"
 
+COLOR_ERROR = "#FF0000"  # red for errors
+COLOR_WARNING = "#FFA500"  # orange for warnings
+
 # background color of mods in listboxes when selected
 COLOR_SELECT_DARK = "#273166"
 COLOR_SELECT_LIGHT = "#5B71E1"
@@ -510,7 +513,7 @@ class Gui:
     def update_mod_colors(self, listbox, selection):
         """Update the background color of items in the listbox based on their selection state"""
         for i in range(listbox.size()):
-            if listbox.itemcget(i, 'bg') in ('orange', 'red'):
+            if listbox.itemcget(i, 'bg') in (COLOR_WARNING, COLOR_ERROR):
                 continue
             if i in selection:
                 listbox.itemconfig(i, {'bg': self.listbox_selected_item_bg})
@@ -597,11 +600,10 @@ class Gui:
                 
         self.active_count_value.config(text=str(len(self.manager.active_mods)))
 
-        # TODO: can highlight mods with ...listbox.itemconfig(index, bg="orange")
         for index in mods_with_misordered_reqs:
-            self.active_mods_listbox.itemconfig(index, {'bg': 'orange'})
+            self.active_mods_listbox.itemconfig(index, {'bg': COLOR_WARNING})
         for index in mods_with_missing_reqs:
-            self.active_mods_listbox.itemconfig(index, {'bg': 'red'})
+            self.active_mods_listbox.itemconfig(index, {'bg': COLOR_ERROR})
     
     def populate_inactive_mods(self):
         """Populate the inactive mods listbox"""
