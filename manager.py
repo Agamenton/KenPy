@@ -312,7 +312,16 @@ class Manager:
         if current_mod_names != existing_mod_names:
             return True
         return False
-
+    
+    def find_kenshi_executable(self):
+        import re
+        kenshi_name_pattern = re.compile(r'kenshi(?:_\w+)?\.exe', re.IGNORECASE)
+        for item in self.kenshi_dir.iterdir():
+            if item.is_file() and kenshi_name_pattern.match(item.name):
+                return item
+        return None
+    
+    
 if __name__ == "__main__":
     # Example usage
     kenshi_dir = r"E:\SteamLibrary\steamapps\common\Kenshi"
