@@ -521,6 +521,10 @@ class Gui:
                     mod_name = widget.get(index)
                     if mod_name:
                         self.toggle_mod(mod_name)
+                        
+            # arrow up and down select mods
+            elif event.keysym in ('Up', 'Down'):
+                self.on_mod_select(event)  # Display mod info on keypress
 
     # ======================
     # MOD INFORMATION DISPLAY
