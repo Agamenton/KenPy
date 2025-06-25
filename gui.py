@@ -338,6 +338,7 @@ class Gui:
                 target_manager_index = self.manager.active_mods.index(target_mod)
                 self.manager.active_mods.remove(self.drag_item)
                 self.manager.active_mods.insert(target_manager_index, self.drag_item)
+                self.start_blinking()
                 
                 # Update the list display
                 self.update_listbox_without_reset(self.active_mods_listbox)
@@ -538,9 +539,7 @@ class Gui:
     
     def toggle_mod(self, mod_name, update=True):
         self.manager.toggle_mod(mod_name)
-        if not self.needs_save:
-            self.needs_save = True
-            self.blink_save_button()
+        self.start_blinking()
         if update:
             self.update_mod_lists()
             self.reset_last_active_mod_idx()
@@ -838,6 +837,7 @@ class Gui:
     # ======================
     
     def sort_active_mods(self):
+        prev_order = self.manager.active_mods.copy()
         missing_reqs = self.manager.sort_active_mods()
         if missing_reqs:
             missing_mods_str = "\n".join(missing_reqs)
@@ -846,6 +846,9 @@ class Gui:
                 f"The following mods are missing:\n{missing_mods_str}\n\n"
                 "Please check the mod requirements and resolve any issues."
             )
+        # if sorted_mods is not the same as current active mods, start blinking the save button
+        if prev_order != self.manager.active_mods:
+            self.start_blinking()
         self.update_mod_lists()
 
     def export_modlist(self):
@@ -877,6 +880,7 @@ class Gui:
             initialdir=default_dir
         )
         if file_path:
+            prev_order = self.manager.active_mods.copy()
             with open(file_path, 'r') as f:
                 mod_names = f.read().splitlines()
                 self.manager.active_mods.clear()
@@ -884,6 +888,8 @@ class Gui:
                     mod = next((m for m in self.manager.all_mods if m.path.name == mod_name), None)
                     if mod:
                         self.manager.active_mods.append(mod)
+            if prev_order != self.manager.active_mods:
+                self.start_blinking()
             self.update_mod_lists()
     
     def import_modlist_from_save(self):
@@ -924,8 +930,11 @@ class Gui:
                     "Do you want to continue loading the available mods?"                    
                 )
             if will_load and mods_ready:
+                prev_order = self.manager.active_mods.copy()
                 self.manager.active_mods.clear()
                 self.manager.active_mods.extend(mods_ready)
+                if prev_order != self.manager.active_mods:
+                    self.start_blinking()
                 self.update_mod_lists()
 
     def set_active_mods(self):
@@ -944,6 +953,20 @@ class Gui:
         self.manager = Manager(self.manager.kenshi_dir)
         self.update_mod_lists()
         self.clear_info()
+        self.stop_blinking()
+    
+    def start_blinking(self):
+        """Start blinking the save button to indicate unsaved changes"""
+        if not self.needs_save:
+            self.needs_save = True
+            self.blink_save_button()
+
+    def stop_blinking(self):
+        self.needs_save = False
+        self.root.after_cancel(self.blink_save_button)
+        BG = COLOR_DARK_PRIMARY if Config().dark_mode else COLOR_LIGHT_PRIMARY
+        FG = COLOR_DARK_SECONDARY if Config().dark_mode else COLOR_LIGHT_SECONDARY
+        self.save_button.config(bg=BG, fg=FG)
     
     def blink_save_button(self):
         """Blink the save button to indicate unsaved changes"""
