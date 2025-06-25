@@ -538,8 +538,9 @@ class Gui:
     
     def toggle_mod(self, mod_name, update=True):
         self.manager.toggle_mod(mod_name)
-        self.needs_save = True
-        self.blink_save_button()
+        if not self.needs_save:
+            self.needs_save = True
+            self.blink_save_button()
         if update:
             self.update_mod_lists()
             self.reset_last_active_mod_idx()
