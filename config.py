@@ -51,9 +51,9 @@ class Config:
     def dark_mode(self):
         """
         Get the dark mode setting from the configuration.
-        If not set, return False.
+        If not set, return True.
         """
-        return self._config.get(CFG_DARK_MODE, False)
+        return self._config.get(CFG_DARK_MODE, True)
     
     @dark_mode.setter
     def dark_mode(self, value):
