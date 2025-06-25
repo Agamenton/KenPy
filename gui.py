@@ -230,13 +230,22 @@ class Gui:
             self.root.tk_setPalette(background="#3E3E3E", foreground="#FFFCD6")
             self.root.config(bg="#3E3E3E")
             self.mode_checkbox.config(fg="#FFFCD6", bg="#3E3E3E", selectcolor="#3E3E3E")
+            listbox_selected_item_bg = "#273166"
         else:
             self.root.tk_setPalette(background="#FFFFFF", foreground="#000000")
             self.root.config(bg="#FFFFFF")
-            self.mode_checkbox.config(fg="#000000", bg="#FFFFFF", selectcolor="#FFFFFF")        
+            self.mode_checkbox.config(fg="#000000", bg="#FFFFFF", selectcolor="#FFFFFF")
+            listbox_selected_item_bg = "#5B71E1"
+        self.active_mods_listbox.config(
+            selectbackground=listbox_selected_item_bg
+        )
+        self.inactive_mods_listbox.config(
+            selectbackground=listbox_selected_item_bg
+        )
         
         # Update info frame background
         self.info_frame.config(bg=self.root.cget('bg'))
+        self.root.update_idletasks()
 
     # ======================
     # DRAG AND DROP FUNCTIONALITY
@@ -336,8 +345,9 @@ class Gui:
             widget.itemconfig(i, {'fg': widget.cget('fg')})
 
         # highlight the item under the cursor
+        highlight_color = "#5f5de6" if Config().dark_mode else "#0400ff"
         if index >= 0:
-            widget.itemconfig(index, {'fg': "#0400ff"})
+            widget.itemconfig(index, {'fg': highlight_color})
     
     def handle_inactive_click(self, event):
         """Handle clicks in the inactive mods listbox"""
