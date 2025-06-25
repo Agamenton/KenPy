@@ -9,6 +9,7 @@ APP_NAME = "KenPy"
 
 
 CFG_KENSHI_DIR = "KENSHI_DIR"
+CFG_DARK_MODE = "DARK_MODE"
 
 
 class Config:
@@ -44,6 +45,24 @@ class Config:
         if not isinstance(value, str):
             raise ValueError("Kenshi directory must be a string.")
         self._config[CFG_KENSHI_DIR] = value
+        self._save_config()
+
+    @property
+    def dark_mode(self):
+        """
+        Get the dark mode setting from the configuration.
+        If not set, return False.
+        """
+        return self._config.get(CFG_DARK_MODE, False)
+    
+    @dark_mode.setter
+    def dark_mode(self, value):
+        """
+        Set the dark mode setting in the configuration.
+        """
+        if not isinstance(value, bool):
+            raise ValueError("Dark mode must be a boolean value.")
+        self._config[CFG_DARK_MODE] = value
         self._save_config()
 
     @staticmethod
