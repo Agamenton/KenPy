@@ -404,7 +404,7 @@ class Gui:
         
         # If this is a double-click (within 300ms of last click)
         current_time = event.time
-        if current_time - self.last_inactive_click < 300 and self.last_inactive_click > 0:
+        if current_time - self.last_inactive_click < 300 and self.last_inactive_click > 0 and index == prev:
             # Process as double-click
             self.toggle_mod(mod_name)
             self.last_inactive_click = 0  # Reset
@@ -454,7 +454,7 @@ class Gui:
         
         # If this is a double-click (within 300ms of last click)
         current_time = event.time
-        if current_time - self.last_active_click < 300 and self.last_active_click > 0:
+        if current_time - self.last_active_click < 300 and self.last_active_click > 0 and index == prev:
             # Process as double-click
             self.toggle_mod(mod_name)
             self.last_active_click = 0  # Reset
