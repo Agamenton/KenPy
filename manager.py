@@ -53,6 +53,15 @@ def find_files(root, pattern, level=0):
     return matches
 
 
+class ModlistDiff:
+    def __init__(self, added, removed):
+        self.added = added
+        self.removed = removed
+    
+    def __bool__(self):
+        return bool(self.added or self.removed)
+    
+
 class Manager:
     """
     Mod manager for Kenshi.
@@ -302,16 +311,14 @@ class Manager:
     
     def check_for_new_mods(self):
         """
-        Return true if there are new mods in the mods folder that are not in the all_mods list.
+        Return ModlistDiff instance.
         """
         current_mods = self.find_all_mods()
-        if len(current_mods) != len(self.all_mods):
-            return True
         current_mod_names = {mod.path.name for mod in current_mods}
         existing_mod_names = {mod.path.name for mod in self.all_mods}
-        if current_mod_names != existing_mod_names:
-            return True
-        return False
+        added_mods = current_mod_names - existing_mod_names
+        removed_mods = existing_mod_names - current_mod_names
+        return ModlistDiff(added=added_mods, removed=removed_mods)
     
     def find_kenshi_executable(self):
         import re
@@ -321,7 +328,7 @@ class Manager:
                 return item
         return None
     
-    
+
 if __name__ == "__main__":
     # Example usage
     kenshi_dir = r"E:\SteamLibrary\steamapps\common\Kenshi"

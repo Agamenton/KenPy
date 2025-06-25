@@ -8,7 +8,7 @@ import subprocess
 from PIL import Image, ImageTk
 
 from mod import Mod
-from manager import Manager
+from manager import Manager, ModlistDiff
 from config import APP_NAME, Config
 from steam_library import open_steam_with_url, get_workshop_of, KENSHI_WORKSHOP_ID
 
@@ -1055,8 +1055,8 @@ class Gui:
     
     def periodic_check_for_mods(self):
         """Periodically check for new mods and update the lists"""
-        is_update_available = self.manager.check_for_new_mods()
-        if is_update_available:
+        diff: ModlistDiff = self.manager.check_for_new_mods()
+        if diff:
             self.start_blinking_reload()
         else:
             self.stop_blinking_reload()
