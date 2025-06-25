@@ -117,8 +117,7 @@ class Gui:
         self.inactive_mods_listbox.config(yscrollcommand=self.inactive_scrollbar.set)
         
         # Existing bindings
-        self.inactive_mods_listbox.bind('<<ListboxSelect>>', self.on_mod_select)
-        self.inactive_mods_listbox.bind('<Button-1>', self.handle_inactive_click)
+        self.inactive_mods_listbox.bind('<ButtonRelease-1>', self.handle_inactive_click)
         self.inactive_mods_listbox.bind('<Button-3>', self.handle_mod_rightclick)
         self.inactive_mods_listbox.bind('<Motion>', self.on_listbox_hover)
         self.inactive_mods_listbox.bind('<Leave>', self.on_listbox_leave)
@@ -151,7 +150,6 @@ class Gui:
         self.active_mods_listbox.config(yscrollcommand=self.active_scrollbar.set)
         
         # Existing bindings
-        self.active_mods_listbox.bind('<<ListboxSelect>>', self.on_mod_select)
         self.active_mods_listbox.bind('<Button-3>', self.handle_mod_rightclick)
         self.active_mods_listbox.bind('<Motion>', self.on_listbox_hover)
         self.active_mods_listbox.bind('<Leave>', self.on_listbox_leave)
@@ -229,9 +227,6 @@ class Gui:
         # Only allowed in the active mods list
         if event.widget != self.active_mods_listbox:
             return
-        
-        # also considered as click event
-        self.handle_active_click(event)
             
         # Get the index of the item under the mouse
         index = event.widget.nearest(event.y)
@@ -293,6 +288,9 @@ class Gui:
         self.drag_item_index = None
         self.drag_start_y = None
         
+        # also considered as click event
+        self.handle_active_click(event)
+        
         # Reset cursor to default
         event.widget.config(cursor="")
     
@@ -345,6 +343,7 @@ class Gui:
             self.inactive_mods_listbox.selection_clear(0, END)
             self.inactive_mods_listbox.selection_set(index)
             self.inactive_mods_listbox.activate(index)
+            self.on_mod_select(event)  # Display mod info on single click
             
             # Schedule reset of click tracker
             self.root.after(300, lambda: setattr(self, 'last_inactive_click', 0))
@@ -373,6 +372,7 @@ class Gui:
             self.active_mods_listbox.selection_clear(0, END)
             self.active_mods_listbox.selection_set(index)
             self.active_mods_listbox.activate(index)
+            self.on_mod_select(event)  # Display mod info on single click
             
             # Schedule reset of click tracker
             self.root.after(300, lambda: setattr(self, 'last_active_click', 0))
