@@ -466,6 +466,7 @@ class Gui:
         self.active_mods_listbox.delete(0, END)
         search_term = self.active_search_bar.get().strip().lower()
         mods_with_missing_reqs = []
+        mods_with_misordered_reqs = []
         i = 0
         for mod in self.manager.active_mods:
             if search_term and search_term not in mod.name.lower():
@@ -474,13 +475,17 @@ class Gui:
             
             if not self.manager.has_all_requirements(mod):
                 mods_with_missing_reqs.append(i)
+            elif not self.manager.is_in_correct_order(mod):
+                mods_with_misordered_reqs.append(i)
             i += 1
                 
         self.active_count_value.config(text=str(len(self.manager.active_mods)))
 
         # TODO: can highlight mods with ...listbox.itemconfig(index, bg="orange")
-        for index in mods_with_missing_reqs:
+        for index in mods_with_misordered_reqs:
             self.active_mods_listbox.itemconfig(index, {'bg': 'orange'})
+        for index in mods_with_missing_reqs:
+            self.active_mods_listbox.itemconfig(index, {'bg': 'red'})
     
     def populate_inactive_mods(self):
         """Populate the inactive mods listbox"""
