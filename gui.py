@@ -121,6 +121,8 @@ class Gui:
 
         self.create_widgets()
 
+        self.periodic_check_for_mods()
+
     def create_widgets(self):
         # -------------------
         # INACTIVE MODS FRAME
@@ -954,6 +956,7 @@ class Gui:
         self.update_mod_lists()
         self.clear_info()
         self.stop_blinking()
+        self.stop_blinking_reload()
     
     def start_blinking(self):
         """Start blinking the save button to indicate unsaved changes"""
@@ -982,6 +985,45 @@ class Gui:
             else:
                 self.save_button.config(bg=BG1, fg=FG1)
             self.root.after(1000, self.blink_save_button)
+
+    # TODO: merge this with the save button blinking
+    def start_blinking_reload(self):
+        """Start blinking the reload button to indicate unsaved changes"""
+        if not self.needs_reload:
+            self.needs_reload = True
+            self.blink_reload_button()
+
+    def stop_blinking_reload(self):
+        self.needs_reload = False
+        self.root.after_cancel(self.blink_reload_button)
+        BG = COLOR_DARK_PRIMARY if Config().dark_mode else COLOR_LIGHT_PRIMARY
+        FG = COLOR_DARK_SECONDARY if Config().dark_mode else COLOR_LIGHT_SECONDARY
+        self.reset_button.config(bg=BG, fg=FG)
+        
+    def blink_reload_button(self):
+        """Blink the reload button to indicate unsaved changes"""
+        BG1 = COLOR_RELOAD_BTN_BG_READY
+        BG2 = COLOR_DARK_PRIMARY if Config().dark_mode else COLOR_LIGHT_PRIMARY
+
+        FG1 = COLOR_DARK_SECONDARY
+        FG2 = COLOR_DARK_SECONDARY if Config().dark_mode else COLOR_LIGHT_SECONDARY
+
+        if self.needs_reload:
+            if self.reset_button.cget('bg') == BG1:
+                self.reset_button.config(bg=BG2, fg=FG2)
+            else:
+                self.reset_button.config(bg=BG1, fg=FG1)
+            self.root.after(1000, self.blink_reload_button)
+    
+    def periodic_check_for_mods(self):
+        """Periodically check for new mods and update the lists"""
+        is_update_available = self.manager.check_for_new_mods()
+        if is_update_available:
+            self.start_blinking_reload()
+        else:
+            self.stop_blinking_reload()
+
+        self.root.after(5000, self.periodic_check_for_mods)
 
 if __name__ == "__main__":
     kenshi_folder = r"E:\SteamLibrary\steamapps\common\Kenshi"
