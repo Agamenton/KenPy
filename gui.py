@@ -677,7 +677,16 @@ class Gui:
     # ======================
     
     def sort_active_mods(self):
-        self.manager.sort_active_mods()
+        missing_reqs = self.manager.sort_active_mods()
+        if missing_reqs:
+            missing_mods_str = "\n".join(missing_reqs)
+            messagebox.showwarning(
+                "Missing Requirements",
+                f"The following mods are missing:\n{missing_mods_str}\n\n"
+                "Please check the mod requirements and resolve any issues."
+            )
+        else:
+            messagebox.showinfo("Sort Complete", "Active mods have been sorted successfully.")
         self.update_mod_lists()
 
     def export_modlist(self):

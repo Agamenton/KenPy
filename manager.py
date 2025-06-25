@@ -8,19 +8,26 @@ from mod import Mod, BASE_MODS
 def topological_sort(graph: dict[str, list[str]]) -> list[str]:
     result = []
     visited = set()
+    missing_items = []
 
     def visit(node):
         if node in visited:
             return
         visited.add(node)
-        for neighbor in graph[node]:
-            visit(neighbor)
+
+        x = graph.get(node, [])
+        if not x:
+            if node not in graph:
+                missing_items.append(node)
+        else:
+            for neighbor in x:
+                visit(neighbor)
         result.append(node)
 
     for node in graph.keys():
         visit(node)
 
-    return result
+    return result, missing_items
 
 
 def find_files(root, pattern, level=0):
@@ -101,21 +108,23 @@ class Manager:
         
         graph = to_graph(self.active_mods)
 
-        sorted_mods = topological_sort(graph)
+        missing_mods = []
+        sorted_mods, missing_mods = topological_sort(graph)
         sorted_active_mods = []
         for mod_name in sorted_mods:
             mod = next((m for m in self.active_mods if m.path.name == mod_name), None)
             if mod:
                 sorted_active_mods.append(mod)
-        return sorted_active_mods
+        return sorted_active_mods, missing_mods
     
     def sort_active_mods(self):
         """
         Sort the active mods in a topological order based on their dependencies.
         This will modify the active_mods list.
         """
-        sorted_mods = self.sorted_active_mods()
+        sorted_mods, missing_mods = self.sorted_active_mods()
         self.active_mods = sorted_mods
+        return missing_mods
 
     def has_all_requirements(self, mod: Mod):
         """
