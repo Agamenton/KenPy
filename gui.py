@@ -1,7 +1,8 @@
 from pathlib import Path
 from tkinter import *
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 import time
+import os
 
 from PIL import Image, ImageTk
 
@@ -32,6 +33,22 @@ COLOR_HOVER_LIGHT = "#0400ff"
 # button colors
 COLOR_SAVE_BTN_BG_READY = "#427374"
 COLOR_RELOAD_BTN_BG_READY = COLOR_SAVE_BTN_BG_READY # for consistency
+
+
+def select_kenshi_folder():
+    """
+    Prompt the user to select the Kenshi installation folder.
+    """
+    root = Tk()
+    root.withdraw()  # Hide the root window
+    folder = filedialog.askdirectory(
+        title="Select Kenshi Installation Folder",
+        initialdir=os.path.expanduser("~"),
+        mustexist=True
+    )
+    if folder:
+        return Path(folder)
+    return None
 
 
 def start_gui(manager: Manager):
@@ -204,7 +221,7 @@ class Gui:
 
         self.lb_main_game_dir = Label(self.paths_frame, text=Path(self.manager.kenshi_dir).as_posix(), anchor=W, justify=LEFT)
         self.lb_main_game_dir.grid(row=0, column=1, sticky=EW, padx=5, pady=5,)
-        self.lb_main_game_dir.bind("<Button-3>", lambda e: self.copy_context_menu(e, self.lb_main_game_dir.cget("text")))
+        self.lb_main_game_dir.bind("<Button-3>", self.kenshi_path_context_menu)
 
         self.btn_mods_dir = Button(self.paths_frame, text="Mods Dir", command=lambda: self.open_folder(self.manager.kenshi_dir / "mods"))
         self.btn_mods_dir.grid(row=1, column=0, sticky=EW, padx=5, pady=5)
@@ -755,6 +772,22 @@ class Gui:
         context_menu = Menu(self.root, tearoff=0)
         context_menu.add_command(label="Copy", command=lambda: self.copy_to_clipboard(value))
         context_menu.post(event.x_root, event.y_root)
+    
+    def kenshi_path_context_menu(self, event):
+        """Create a context menu for Kenshi paths"""
+        context_menu = Menu(self.root, tearoff=0)
+        context_menu.add_command(label="SET Kenshi Dir", command=lambda: self.select_kenshi_folder_dialog())
+        context_menu.add_command(label="Copy Path", command=lambda: self.copy_to_clipboard(self.manager.kenshi_dir.as_posix()))
+        context_menu.post(event.x_root, event.y_root)
+
+    def select_kenshi_folder_dialog(self):
+        kenshi_dir = select_kenshi_folder()
+        if kenshi_dir:
+            self.manager = Manager(kenshi_dir)
+            self.update_mod_lists()
+            self.clear_info()
+            self.stop_blinking()
+            self.stop_blinking_reload()
 
     def clear_info(self):
         """Clear the mod information display"""

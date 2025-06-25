@@ -5,7 +5,7 @@ from tkinter import Tk, filedialog, messagebox
 from steam_library import get_steam_install_path, get_steam_library_folders, get_installed_steam_games, KENSHI_WORKSHOP_ID, KENSHI_STEAM_NAME
 from config import Config
 from manager import Manager
-from gui import start_gui
+from gui import start_gui, select_kenshi_folder
 
 
 def get_steam_kenshi_folder():
@@ -56,24 +56,7 @@ def find_kenshi_folder():
     return kenshi_folder
 
 
-def select_kenshi_folder():
-    """
-    Prompt the user to select the Kenshi installation folder.
-    """
-    root = Tk()
-    root.withdraw()  # Hide the root window
-    folder = filedialog.askdirectory(
-        title="Select Kenshi Installation Folder",
-        initialdir=os.path.expanduser("~"),
-        mustexist=True
-    )
-    if folder:
-        return Path(folder)
-    return None
-
-
 def main():
-    ...
     kenshi_folder = find_kenshi_folder()
     if kenshi_folder is None:
         messagebox.showinfo(
