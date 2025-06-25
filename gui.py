@@ -165,6 +165,7 @@ class Gui:
 
         self.lb_main_game_dir = Label(self.paths_frame, text=Path(self.manager.kenshi_dir).as_posix(), anchor=W, justify=LEFT)
         self.lb_main_game_dir.grid(row=0, column=1, sticky=EW, padx=5, pady=5,)
+        self.lb_main_game_dir.bind("<Button-3>", lambda e: self.copy_context_menu(e, self.lb_main_game_dir.cget("text")))
 
         self.btn_mods_dir = Button(self.paths_frame, text="Mods Dir", command=lambda: self.open_folder(self.manager.kenshi_dir / "mods"))
         self.btn_mods_dir.grid(row=1, column=0, sticky=EW, padx=5, pady=5)
@@ -172,6 +173,7 @@ class Gui:
 
         self.lb_mods_dir = Label(self.paths_frame, text=Path(self.manager.kenshi_dir / "mods").as_posix(), anchor=W, justify=LEFT)
         self.lb_mods_dir.grid(row=1, column=1, sticky=EW, padx=5, pady=5)
+        self.lb_mods_dir.bind("<Button-3>", lambda e: self.copy_context_menu(e, self.lb_mods_dir.cget("text")))
 
         workshop_dir = get_workshop_of(KENSHI_WORKSHOP_ID)
         if workshop_dir:
@@ -184,6 +186,8 @@ class Gui:
         self.btn_workshop_dir.config(width=15)
         self.lb_workshop_dir = Label(self.paths_frame, text=workshop_dir, anchor=W, justify=LEFT)
         self.lb_workshop_dir.grid(row=2, column=1, sticky=EW, padx=5, pady=5)
+        if workshop_dir != "Not found":
+            self.lb_workshop_dir.bind("<Button-3>", lambda e: self.copy_context_menu(e, workshop_dir))
 
         # Populate the listboxes
         self.update_mod_lists()
@@ -222,6 +226,12 @@ class Gui:
         self.save_button = Button(self.buttons_frame, text="Save", command=self.set_active_mods)
         self.save_button.pack(fill=X, padx=5, pady=5, side=BOTTOM)
         self.on_mode_change()
+    
+    def copy_to_clipboard(self, text):
+        """Copy text to the clipboard"""
+        self.root.clipboard_clear()
+        self.root.clipboard_append(text)
+        self.root.update()
 
     def on_mode_change(self):
         """Toggle dark mode and update the configuration"""
@@ -593,21 +603,27 @@ class Gui:
         mod_url = (mod.web_url if len(mod.web_url) < max_len else f"{mod.web_url[:part_len]}...{mod.web_url[-part_len:]}") if mod.web_url else "N/A"
         mod_steam_url = (mod.steam_url if len(mod.steam_url) < max_len else f"{mod.steam_url[:part_len]}...{mod.steam_url[-part_len:]}") if mod.steam_url else "N/A"
         paths = (
-            ("Local Path", mod_path),
-            ("Web URL", mod_url),
-            ("Steam URL", mod_steam_url),
+            ("Local Path", mod_path, mod.path.as_posix()),
+            ("Web URL", mod_url, mod.web_url),
+            ("Steam URL", mod_steam_url, mod.steam_url),
         )
-        min_width = max(len(label_text) for label_text, _ in paths) + 2  # +2 for padding
-        for i, (label_text, value) in enumerate(paths):
+        min_width = max(len(label_text) for label_text, _, _ in paths) + 2  # +2 for padding
+        for i, (label_text, display_value, real_value) in enumerate(paths):
             individual_frame = Frame(paths_frame)
             individual_frame.grid(row=i, column=0, sticky=W, padx=5, pady=1)
             individual_frame.columnconfigure(0, weight=0)
             individual_frame.columnconfigure(1, weight=1)
             label = Label(individual_frame, text=f"{label_text}:", anchor=W, font=("Arial", 10, "bold"), width=min_width)
             label.grid(row=i, column=0, sticky=W, padx=5)
-            value_label = Label(individual_frame, text=value, anchor=W, justify=LEFT)
+            value_label = Label(individual_frame, text=display_value, anchor=W, justify=LEFT)
             value_label.grid(row=i, column=1, sticky=W, padx=5)
+            value_label.bind("<Button-3>", lambda e, v=real_value: self.copy_context_menu(e, v))
         
+    def copy_context_menu(self, event, value):
+        """Create a context menu for paths"""
+        context_menu = Menu(self.root, tearoff=0)
+        context_menu.add_command(label="Copy", command=lambda: self.copy_to_clipboard(value))
+        context_menu.post(event.x_root, event.y_root)
 
     def clear_info(self):
         """Clear the mod information display"""
@@ -681,11 +697,12 @@ class Gui:
 
     def copy_mod_path(self, mod: Mod):
         """Copy the mod's path to the clipboard"""
-        # TODO:
+        self.copy_to_clipboard(mod.path.parent.as_posix())
 
     def copy_url(self, mod: Mod):
         """Copy the mod's URL to the clipboard"""
-        # TODO
+        if mod.web_url:
+            self.copy_to_clipboard(mod.web_url)
         
     # ======================
     # MOD LIST OPERATIONS
