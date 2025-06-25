@@ -303,7 +303,7 @@ class Gui:
         widget = event.widget
         list_length = widget.size()
         for i in range(list_length):
-            widget.itemconfig(i, {'bg': widget.cget('bg')})
+            widget.itemconfig(i, {'fg': widget.cget('fg')})
 
     def on_listbox_hover(self, event):
         """Highlight the item under the mouse cursor in the listbox"""
@@ -313,11 +313,11 @@ class Gui:
         # set every item to normal
         list_length = widget.size()
         for i in range(list_length):
-            widget.itemconfig(i, {'bg': widget.cget('bg')})
+            widget.itemconfig(i, {'fg': widget.cget('fg')})
 
         # highlight the item under the cursor
         if index >= 0:
-            widget.itemconfig(index, {'bg': 'lightblue'})
+            widget.itemconfig(index, {'fg': "#0400ff"})
     
     def handle_inactive_click(self, event):
         """Handle clicks in the inactive mods listbox"""
@@ -435,11 +435,22 @@ class Gui:
         """Populate the active mods listbox"""
         self.active_mods_listbox.delete(0, END)
         search_term = self.active_search_bar.get().strip().lower()
+        mods_with_missing_reqs = []
+        i = 0
         for mod in self.manager.active_mods:
             if search_term and search_term not in mod.name.lower():
                 continue
             self.active_mods_listbox.insert(END, mod.name)
+            
+            if not self.manager.has_all_requirements(mod):
+                mods_with_missing_reqs.append(i)
+            i += 1
+                
         self.active_count_value.config(text=str(len(self.manager.active_mods)))
+
+        # TODO: can highlight mods with ...listbox.itemconfig(index, bg="orange")
+        for index in mods_with_missing_reqs:
+            self.active_mods_listbox.itemconfig(index, {'bg': 'orange'})
     
     def populate_inactive_mods(self):
         """Populate the inactive mods listbox"""
