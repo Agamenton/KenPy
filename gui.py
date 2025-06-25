@@ -57,7 +57,9 @@ class Gui:
     def __init__(self, root: Tk, manager: Manager):
         self.root = root
         self.manager = manager
+
         self.needs_save = False
+
         self.needs_reload = False
         
         # Track last click times for each listbox
@@ -534,6 +536,7 @@ class Gui:
     def toggle_mod(self, mod_name, update=True):
         self.manager.toggle_mod(mod_name)
         self.needs_save = True
+        self.blink_save_button()
         if update:
             self.update_mod_lists()
             self.reset_last_active_mod_idx()
@@ -938,6 +941,21 @@ class Gui:
         self.manager = Manager(self.manager.kenshi_dir)
         self.update_mod_lists()
         self.clear_info()
+    
+    def blink_save_button(self):
+        """Blink the save button to indicate unsaved changes"""
+        BG1 = COLOR_SAVE_BTN_BG_READY
+        BG2 = COLOR_DARK_PRIMARY if Config().dark_mode else COLOR_LIGHT_PRIMARY
+
+        FG1 = COLOR_DARK_SECONDARY
+        FG2 = COLOR_DARK_SECONDARY if Config().dark_mode else COLOR_LIGHT_SECONDARY
+
+        if self.needs_save:
+            if self.save_button.cget('bg') == BG1:
+                self.save_button.config(bg=BG2, fg=FG2)
+            else:
+                self.save_button.config(bg=BG1, fg=FG1)
+            self.root.after(1000, self.blink_save_button)
 
 if __name__ == "__main__":
     kenshi_folder = r"E:\SteamLibrary\steamapps\common\Kenshi"
