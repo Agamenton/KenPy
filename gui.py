@@ -191,6 +191,10 @@ class Gui:
         # -------------------
         # BUTTONS FRAME
         # Create buttons
+        self.dark_mode = BooleanVar(value=Config().dark_mode)
+        self.mode_checkbox = Checkbutton(self.buttons_frame, text="Dark Mode", variable=self.dark_mode, command=self.on_mode_change)
+        self.mode_checkbox.pack(fill=X, padx=5, pady=5)
+
         self.clear_mods_button = Button(self.buttons_frame, text="Clear", command=self.clear_active_mods)
         self.clear_mods_button.pack(fill=X, padx=5, pady=5)
         self.reset_button = Button(self.buttons_frame, text="Reload", command=self.reset_modlist)
@@ -217,6 +221,22 @@ class Gui:
         
         self.save_button = Button(self.buttons_frame, text="Save", command=self.set_active_mods)
         self.save_button.pack(fill=X, padx=5, pady=5, side=BOTTOM)
+        self.on_mode_change()
+
+    def on_mode_change(self):
+        """Toggle dark mode and update the configuration"""
+        Config().dark_mode = self.dark_mode.get()
+        if self.dark_mode.get():
+            self.root.tk_setPalette(background="#3E3E3E", foreground="#FFFCD6")
+            self.root.config(bg="#3E3E3E")
+            self.mode_checkbox.config(fg="#FFFCD6", bg="#3E3E3E", selectcolor="#3E3E3E")
+        else:
+            self.root.tk_setPalette(background="#FFFFFF", foreground="#000000")
+            self.root.config(bg="#FFFFFF")
+            self.mode_checkbox.config(fg="#000000", bg="#FFFFFF", selectcolor="#FFFFFF")        
+        
+        # Update info frame background
+        self.info_frame.config(bg=self.root.cget('bg'))
 
     # ======================
     # DRAG AND DROP FUNCTIONALITY
