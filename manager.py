@@ -116,6 +116,21 @@ class Manager:
         """
         sorted_mods = self.sorted_active_mods()
         self.active_mods = sorted_mods
+
+    def has_all_requirements(self, mod: Mod):
+        """
+        Check if all dependencies of a mod are in the active_mods list.
+        :param mod: Mod instance to check.
+        :return: True if all dependencies are satisfied, False otherwise.
+        """
+        if not isinstance(mod, Mod):
+            raise ValueError("mod must be an instance of Mod.")
+        
+        all_mods = [m.path.name for m in self.active_mods]
+        for dependency in mod.requires:
+            if dependency not in all_mods:
+                return False
+        return True
     
     def save_active_mods(self):
         """
