@@ -11,6 +11,10 @@ from config import APP_NAME, Config
 from steam_library import open_steam_with_url, get_workshop_of, KENSHI_WORKSHOP_ID
 
 
+COLOR_SELECT_DARK = "#273166"
+COLOR_SELECT_LIGHT = "#5B71E1"
+
+
 def start_gui(manager: Manager):
     """
     Start the GUI for the mod manager.
@@ -246,12 +250,12 @@ class Gui:
             self.root.tk_setPalette(background="#3E3E3E", foreground="#FFFCD6")
             self.root.config(bg="#3E3E3E")
             self.mode_checkbox.config(fg="#FFFCD6", bg="#3E3E3E", selectcolor="#3E3E3E")
-            listbox_selected_item_bg = "#273166"
+            listbox_selected_item_bg = COLOR_SELECT_DARK
         else:
             self.root.tk_setPalette(background="#FFFFFF", foreground="#000000")
             self.root.config(bg="#FFFFFF")
             self.mode_checkbox.config(fg="#000000", bg="#FFFFFF", selectcolor="#FFFFFF")
-            listbox_selected_item_bg = "#5B71E1"
+            listbox_selected_item_bg = COLOR_SELECT_LIGHT
         self.active_mods_listbox.config(
             selectbackground=listbox_selected_item_bg
         )
@@ -488,6 +492,9 @@ class Gui:
         self.manager.toggle_mod(mod_name)
         if update:
             self.update_mod_lists()
+            self.clear_selections()
+            self.current_active_selection = []
+            self.current_inactive_selection = []
 
     def update_mod_lists(self):
         """Update both mod lists and preserve scroll positions"""
