@@ -157,6 +157,7 @@ class Gui:
         self.active_mods_listbox.bind('<ButtonPress-1>', self.drag_start)
         self.active_mods_listbox.bind('<B1-Motion>', self.drag_motion)
         self.active_mods_listbox.bind('<ButtonRelease-1>', self.drag_release)
+        self.active_mods_listbox.bind('<KeyRelease>', self.on_keypress_listbox)
 
         # -------------------
         # PATHS FRAME
