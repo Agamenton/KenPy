@@ -141,6 +141,29 @@ class Manager:
                 return False
         return True
     
+    def is_in_correct_order(self, mod: Mod):
+        """
+        Check if a mod is in the correct order based on its dependencies.
+        The mod must be in the active_mods.
+        :param mod: Mod instance to check.
+        :return: True if the mod is in the correct order, False otherwise.
+        """
+        if not isinstance(mod, Mod):
+            raise ValueError("mod must be an instance of Mod.")
+    
+        if mod not in self.active_mods:
+            raise ValueError("Mod must be in the active_mods list to check its order.")
+        
+        if not self.has_all_requirements(mod):
+            return False
+        
+        all_mods = [m.path.name for m in self.active_mods]
+        for dependency in mod.requires:
+            # Check if the dependency appears before the mod in the active_mods list
+            if all_mods.index(dependency) > all_mods.index(mod.path.name):
+                return False
+        return True
+    
     def save_active_mods(self):
         """
         Save the active mods to the active_mods_file.
