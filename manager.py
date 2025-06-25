@@ -289,7 +289,7 @@ class Manager:
     
     def find_all_mods(self):
         all_mods = []
-        kenshi_mods_folder = Path(kenshi_dir) / "mods"
+        kenshi_mods_folder = Path(self.kenshi_dir) / "mods"
         kenshi_workshop_folder = get_workshop_of(KENSHI_WORKSHOP_ID)
         if kenshi_mods_folder.exists():
             all_mods.extend(find_files(kenshi_mods_folder, "*.mod", 1))
