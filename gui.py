@@ -940,7 +940,7 @@ class Gui:
     def set_active_mods(self):
         """Save the current active mods"""
         self.manager.save_active_mods()
-        self.needs_save = False
+        self.stop_blinking()
 
     def clear_active_mods(self):
         """Clear the active mods list"""
