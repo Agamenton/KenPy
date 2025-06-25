@@ -132,6 +132,7 @@ class Gui:
         self.inactive_mods_listbox.bind('<Motion>', self.on_listbox_hover)
         self.inactive_mods_listbox.bind('<Leave>', self.on_listbox_leave)
         self.inactive_mods_listbox.bind('<KeyRelease>', self.on_keypress_listbox)
+        self.inactive_mods_listbox.bind('<FocusOut>', lambda e: self.clear_inactive_selection())
 
         # -------------------
         # ACTIVE MODS FRAME
@@ -168,6 +169,7 @@ class Gui:
         self.active_mods_listbox.bind('<B1-Motion>', self.drag_motion)
         self.active_mods_listbox.bind('<ButtonRelease-1>', self.drag_release)
         self.active_mods_listbox.bind('<KeyRelease>', self.on_keypress_listbox)
+        self.active_mods_listbox.bind('<FocusOut>', lambda e: self.clear_active_selection())
 
         # -------------------
         # PATHS FRAME
@@ -349,10 +351,20 @@ class Gui:
     # MOD LIST MANAGEMENT
     # ======================
 
-    def clear_selections(self):
+    def reset_last_active_mod_idx(self):
         """Clear selections in both listboxes"""
         self.last_selected_inactive_mod_idx = None
         self.last_selected_active_mod_idx = None
+    
+    def clear_active_selection(self):
+        """Clear the current active selection"""
+        self.current_active_selection = []
+        self.update_mod_colors(self.active_mods_listbox, self.current_active_selection)
+
+    def clear_inactive_selection(self):
+        """Clear the current inactive selection"""
+        self.current_inactive_selection = []
+        self.update_mod_colors(self.inactive_mods_listbox, self.current_inactive_selection)
 
     def on_listbox_leave(self, event):
         """Reset the background color of all items in the listbox when mouse leaves"""
@@ -380,7 +392,7 @@ class Gui:
         """Handle clicks in the inactive mods listbox"""
         # Get the nearest item at the click position
         prev = self.last_selected_inactive_mod_idx
-        self.clear_selections()
+        self.reset_last_active_mod_idx()
 
         if not self.was_click_on_item(event, self.inactive_mods_listbox):
             self.inactive_mods_listbox.selection_clear(0, END)
@@ -430,7 +442,7 @@ class Gui:
     def handle_active_click(self, event):
         """Handle clicks in the active mods listbox"""
         prev = self.last_selected_active_mod_idx
-        self.clear_selections()
+        self.reset_last_active_mod_idx()
 
         if not self.was_click_on_item(event, self.active_mods_listbox):
             self.active_mods_listbox.selection_clear(0, END)
@@ -506,7 +518,7 @@ class Gui:
         self.manager.toggle_mod(mod_name)
         if update:
             self.update_mod_lists()
-            self.clear_selections()
+            self.reset_last_active_mod_idx()
             self.current_active_selection = []
             self.current_inactive_selection = []
 
