@@ -11,8 +11,23 @@ from config import APP_NAME, Config
 from steam_library import open_steam_with_url, get_workshop_of, KENSHI_WORKSHOP_ID
 
 
+# primary palette colors
+COLOR_DARK_PRIMARY = "#3E3E3E"
+COLOR_DARK_SECONDARY = "#FFFCD6"
+
+COLOR_LIGHT_PRIMARY = "#FFFFFF"
+COLOR_LIGHT_SECONDARY = "#000000"
+
+# background color of mods in listboxes when selected
 COLOR_SELECT_DARK = "#273166"
 COLOR_SELECT_LIGHT = "#5B71E1"
+
+# text color when mouse hover over mods
+COLOR_HOVER_DARK = "#5f5de6"
+COLOR_HOVER_LIGHT = "#0400ff"
+
+# button colors
+COLOR_SAVE_BTN_BG_READY = "#427444"  # when save is ready
 
 
 def start_gui(manager: Manager):
@@ -253,14 +268,14 @@ class Gui:
         """Toggle dark mode and update the configuration"""
         Config().dark_mode = self.dark_mode.get()
         if self.dark_mode.get():
-            self.root.tk_setPalette(background="#3E3E3E", foreground="#FFFCD6")
-            self.root.config(bg="#3E3E3E")
-            self.mode_checkbox.config(fg="#FFFCD6", bg="#3E3E3E", selectcolor="#3E3E3E")
+            self.root.tk_setPalette(background=COLOR_DARK_PRIMARY, foreground=COLOR_DARK_SECONDARY)
+            self.root.config(bg=COLOR_DARK_PRIMARY)
+            self.mode_checkbox.config(fg=COLOR_DARK_SECONDARY, bg=COLOR_DARK_PRIMARY, selectcolor=COLOR_DARK_PRIMARY)
             self.listbox_selected_item_bg = COLOR_SELECT_DARK
         else:
-            self.root.tk_setPalette(background="#FFFFFF", foreground="#000000")
-            self.root.config(bg="#FFFFFF")
-            self.mode_checkbox.config(fg="#000000", bg="#FFFFFF", selectcolor="#FFFFFF")
+            self.root.tk_setPalette(background=COLOR_LIGHT_PRIMARY, foreground=COLOR_LIGHT_SECONDARY)
+            self.root.config(bg=COLOR_LIGHT_PRIMARY)
+            self.mode_checkbox.config(fg=COLOR_LIGHT_SECONDARY, bg=COLOR_LIGHT_PRIMARY, selectcolor=COLOR_LIGHT_PRIMARY)
             self.listbox_selected_item_bg = COLOR_SELECT_LIGHT
         self.active_mods_listbox.config(
             selectbackground=self.listbox_selected_item_bg
@@ -386,7 +401,7 @@ class Gui:
             widget.itemconfig(i, {'fg': widget.cget('fg')})
 
         # highlight the item under the cursor
-        highlight_color = "#5f5de6" if Config().dark_mode else "#0400ff"
+        highlight_color = COLOR_HOVER_DARK if Config().dark_mode else COLOR_HOVER_LIGHT
         if index >= 0:
             widget.itemconfig(index, {'fg': highlight_color})
     
