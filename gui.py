@@ -30,7 +30,8 @@ COLOR_HOVER_DARK = "#5f5de6"
 COLOR_HOVER_LIGHT = "#0400ff"
 
 # button colors
-COLOR_SAVE_BTN_BG_READY = "#427444"  # when save is ready
+COLOR_SAVE_BTN_BG_READY = "#427374"
+COLOR_RELOAD_BTN_BG_READY = COLOR_SAVE_BTN_BG_READY # for consistency
 
 
 def start_gui(manager: Manager):
@@ -785,7 +786,6 @@ class Gui:
             context_menu.add_command(label="Copy Mod Path", command=lambda: self.copy_mod_path(mod))
             context_menu.add_separator()
             
-            # DEV-NOTE: Gui class probably should not be responsible for this
             if mod.web_url:
                 context_menu.add_command(label="Open URL in Browser", command=lambda: self.open_url(mod))
             if mod.steam_url:
