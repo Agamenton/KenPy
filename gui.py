@@ -77,11 +77,15 @@ class Gui:
         self.inactive_mods_frame.grid(row=0, column=1, sticky=NSEW, padx=5, pady=5, rowspan=2)
         self.inactive_mods_frame.columnconfigure(0, weight=1)
         self.inactive_mods_frame.rowconfigure(2, weight=1)
+        self.last_selected_inactive_mod_idx = None
+        self.current_inactive_selection = []
 
         self.active_mods_frame = Frame(self.frame)
         self.active_mods_frame.grid(row=0, column=2, sticky=NSEW, padx=5, pady=5, rowspan=2)
         self.active_mods_frame.columnconfigure(0, weight=1)
         self.active_mods_frame.rowconfigure(2, weight=1)
+        self.last_selected_active_mod_idx = None
+        self.current_active_selection = []
 
         self.buttons_frame = Frame(self.frame)
         self.buttons_frame.grid(row=0, column=3, sticky=NS, padx=5, pady=5, rowspan=2)
@@ -339,6 +343,11 @@ class Gui:
     # MOD LIST MANAGEMENT
     # ======================
 
+    def clear_selections(self):
+        """Clear selections in both listboxes"""
+        self.last_selected_inactive_mod_idx = None
+        self.last_selected_active_mod_idx = None
+
     def on_listbox_leave(self, event):
         """Reset the background color of all items in the listbox when mouse leaves"""
         widget = event.widget
@@ -364,6 +373,8 @@ class Gui:
     def handle_inactive_click(self, event):
         """Handle clicks in the inactive mods listbox"""
         # Get the nearest item at the click position
+        prev = self.last_selected_inactive_mod_idx
+        self.clear_selections()
 
         if not self.was_click_on_item(event, self.inactive_mods_listbox):
             self.inactive_mods_listbox.selection_clear(0, END)
@@ -386,13 +397,33 @@ class Gui:
             self.inactive_mods_listbox.selection_set(index)
             self.inactive_mods_listbox.activate(index)
             self.on_mod_select(event)  # Display mod info on single click
+            # if shift was held, select all mods between previous and current selection
+            if event.state & 0x0001:  # Shift key is held
+                if prev is not None and prev != index:
+                    start = min(prev, index)
+                    end = max(prev, index)
+                    self.inactive_mods_listbox.selection_set(start, end)
+                    self.current_inactive_selection = list(range(start, end + 1))
+            elif event.state & 0x0004:  # Control key is held
+                # If Control is held, add/remove the item in the selection
+                if index in self.current_inactive_selection:
+                    # self.inactive_mods_listbox.selection_clear(index)
+                    self.current_inactive_selection.remove(index)
+                else:
+                    # self.inactive_mods_listbox.selection_set(index)
+                    self.current_inactive_selection.append(index)
+                self.last_selected_inactive_mod_idx = index
+            else:
+                self.current_inactive_selection = [index]
+                self.last_selected_inactive_mod_idx = index
             
-            # Schedule reset of click tracker
-            self.root.after(300, lambda: setattr(self, 'last_inactive_click', 0))
+                # Schedule reset of click tracker
+                self.root.after(300, lambda: setattr(self, 'last_inactive_click', 0))
 
     def handle_active_click(self, event):
         """Handle clicks in the active mods listbox"""
-        # Get the item at the click position
+        prev = self.last_selected_active_mod_idx
+        self.clear_selections()
 
         if not self.was_click_on_item(event, self.active_mods_listbox):
             self.active_mods_listbox.selection_clear(0, END)
@@ -415,9 +446,27 @@ class Gui:
             self.active_mods_listbox.selection_set(index)
             self.active_mods_listbox.activate(index)
             self.on_mod_select(event)  # Display mod info on single click
+            if event.state & 0x0001:  # Shift key is held
+                if prev is not None and prev != index:
+                    start = min(prev, index)
+                    end = max(prev, index)
+                    self.active_mods_listbox.selection_set(start, end)
+                    self.current_active_selection = list(range(start, end + 1))
+            elif event.state & 0x0004:  # Control key is held
+                # If Control is held, add/remove the item in the selection
+                if index in self.current_active_selection:
+                    self.active_mods_listbox.selection_clear(index)
+                    self.current_active_selection.remove(index)
+                else:
+                    self.active_mods_listbox.selection_set(index)
+                    self.current_active_selection.append(index)
+                self.last_selected_active_mod_idx = index
+            else:
+                self.current_active_selection = [index]
+                self.last_selected_active_mod_idx = index
             
-            # Schedule reset of click tracker
-            self.root.after(300, lambda: setattr(self, 'last_active_click', 0))
+                # Schedule reset of click tracker
+                self.root.after(300, lambda: setattr(self, 'last_active_click', 0))
 
     def was_click_on_item(self, event, listbox):
         """Check if the click in a listbox was on an item"""
@@ -435,9 +484,10 @@ class Gui:
             return True
         return False
     
-    def toggle_mod(self, mod_name):
+    def toggle_mod(self, mod_name, update=True):
         self.manager.toggle_mod(mod_name)
-        self.update_mod_lists()
+        if update:
+            self.update_mod_lists()
 
     def update_mod_lists(self):
         """Update both mod lists and preserve scroll positions"""
@@ -512,19 +562,22 @@ class Gui:
     def on_keypress_listbox(self, event):
         """Handle keypress events in the listboxes"""
         widget = event.widget
-        if widget == self.active_mods_listbox or widget == self.inactive_mods_listbox:
-            if event.keysym == 'Return':
-                # Simulate a click on the selected item
-                index = widget.curselection()
-                if index:
-                    index = index[0]
-                    mod_name = widget.get(index)
-                    if mod_name:
-                        self.toggle_mod(mod_name)
-                        
-            # arrow up and down select mods
-            elif event.keysym in ('Up', 'Down'):
-                self.on_mod_select(event)  # Display mod info on keypress
+        if event.keysym == 'Return':
+            if widget == self.active_mods_listbox:
+                selection = self.current_active_selection
+                listbox = self.active_mods_listbox
+            elif widget == self.inactive_mods_listbox:
+                selection = self.current_inactive_selection
+                listbox = self.inactive_mods_listbox
+            for i in selection:
+                mod_name = listbox.get(i)
+                if mod_name:
+                    self.toggle_mod(mod_name, update=False)
+            self.update_mod_lists() # update modlists after all mods were moved over
+
+        # arrow up and down select mods
+        elif event.keysym in ('Up', 'Down'):
+            self.on_mod_select(event)  # Display mod info on keypress
 
     # ======================
     # MOD INFORMATION DISPLAY
