@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter import messagebox, filedialog
 import time
 import os
+import subprocess
 
 from PIL import Image, ImageTk
 
@@ -279,8 +280,12 @@ class Gui:
         spacer3 = Frame(self.buttons_frame, height=0)
         spacer3.pack(fill=Y, expand=True)
         
+        self.launch_kenshi_button = Button(self.buttons_frame, text="Launch Kenshi", command=self.launch_kenshi)
+        self.launch_kenshi_button.pack(fill=X, padx=5, pady=5, side=BOTTOM)
+
         self.save_button = Button(self.buttons_frame, text="Save", command=self.set_active_mods)
         self.save_button.pack(fill=X, padx=5, pady=5, side=BOTTOM)
+
         self.on_mode_change()
     
     def copy_to_clipboard(self, text):
@@ -1057,6 +1062,22 @@ class Gui:
             self.stop_blinking_reload()
 
         self.root.after(5000, self.periodic_check_for_mods)
+
+    def launch_kenshi(self):
+        exe = self.manager.find_kenshi_executable()
+        if exe:
+            try:
+                # first change cwd to the Kenshi folder
+                cwd = self.manager.kenshi_dir.as_posix()
+                os.chdir(cwd)
+
+                subprocess.Popen([exe], cwd=cwd)
+
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to launch Kenshi: {e}")
+        else:
+            self.launch_kenshi_button.config(state=DISABLED)
+
 
 if __name__ == "__main__":
     kenshi_folder = r"E:\SteamLibrary\steamapps\common\Kenshi"
