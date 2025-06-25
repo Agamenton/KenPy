@@ -69,16 +69,7 @@ class Manager:
             with open(self.active_mods_file, 'r') as f:
                 active_mod_names = f.read().splitlines()
                 
-        self.all_mods = []
-        kenshi_mods_folder = Path(kenshi_dir) / "mods"
-        kenshi_workshop_folder = get_workshop_of(KENSHI_WORKSHOP_ID)
-        if kenshi_mods_folder.exists():
-            self.all_mods.extend(find_files(kenshi_mods_folder, "*.mod", 1))
-        if kenshi_workshop_folder:
-            kenshi_workshop_folder = Path(kenshi_workshop_folder)
-            if kenshi_workshop_folder.exists():
-                self.all_mods.extend(find_files(kenshi_workshop_folder, "*.mod", 1))
-        self.all_mods = [Mod(mod) for mod in self.all_mods if mod.is_file()]
+        self.all_mods = self.find_all_mods()
 
         self.active_mods: list[Mod] = []
         for mod_name in active_mod_names:
@@ -295,7 +286,32 @@ class Manager:
                         not_found.append(mod_name)       
                 
         return (mods, not_found)
-
+    
+    def find_all_mods(self):
+        all_mods = []
+        kenshi_mods_folder = Path(kenshi_dir) / "mods"
+        kenshi_workshop_folder = get_workshop_of(KENSHI_WORKSHOP_ID)
+        if kenshi_mods_folder.exists():
+            all_mods.extend(find_files(kenshi_mods_folder, "*.mod", 1))
+        if kenshi_workshop_folder:
+            kenshi_workshop_folder = Path(kenshi_workshop_folder)
+            if kenshi_workshop_folder.exists():
+                all_mods.extend(find_files(kenshi_workshop_folder, "*.mod", 1))
+        all_mods = [Mod(mod) for mod in all_mods if mod.is_file()]
+        return all_mods
+    
+    def check_for_new_mods(self):
+        """
+        Return true if there are new mods in the mods folder that are not in the all_mods list.
+        """
+        current_mods = self.find_all_mods()
+        if len(current_mods) != len(self.all_mods):
+            return True
+        current_mod_names = {mod.path.name for mod in current_mods}
+        existing_mod_names = {mod.path.name for mod in self.all_mods}
+        if current_mod_names != existing_mod_names:
+            return True
+        return False
 
 if __name__ == "__main__":
     # Example usage
