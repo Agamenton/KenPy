@@ -848,6 +848,10 @@ class Gui:
         context_menu = Menu(self.root, tearoff=0)
         # commands: open folder, open URL in browser, open URL in Steam, copy mod path to clipboard, copy URL to clipboard
         if mod:
+            # if item has ERROR background add "Load prerequisites" command
+            if widget.itemcget(index, 'bg') == COLOR_ERROR:
+                context_menu.add_command(label="Load Prerequisites", command=lambda: self.load_prerequisites(mod))
+                context_menu.add_separator()
             context_menu.add_command(label="Open Mod Folder", command=lambda: self.open_mod_folder(mod))
             context_menu.add_command(label="Copy Mod Path", command=lambda: self.copy_mod_path(mod))
             context_menu.add_separator()
@@ -901,6 +905,18 @@ class Gui:
     # ======================
     # MOD LIST OPERATIONS
     # ======================
+
+    def load_prerequisites(self, mod: Mod):
+        """Load prerequisites for the given mod"""
+        not_available = self.manager.load_prerequisites(mod)
+        if not_available:
+            missing_mods_str = "\n".join(not_available)
+            messagebox.showwarning(
+                "Missing Prerequisites",
+                f"The following mods could not be loaded:\n{missing_mods_str}\n"
+            )
+        self.update_mod_lists()
+        self.start_blinking()
     
     def sort_active_mods(self):
         prev_order = self.manager.active_mods.copy()

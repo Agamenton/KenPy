@@ -328,6 +328,22 @@ class Manager:
                 return item
         return None
     
+    def load_prerequisites(self, mod: Mod):
+        missing_mods = []
+        if not isinstance(mod, Mod):
+            raise ValueError("mod must be an instance of Mod.")
+        
+        for req in mod.requires:
+            if req not in BASE_MODS:
+                found_mod = next((m for m in self.all_mods if m.path.name == req), None)
+                if found_mod:
+                    if found_mod not in self.active_mods:
+                        self.active_mods.append(found_mod)
+                else:
+                    missing_mods.append(req)
+        
+        return missing_mods
+    
 
 if __name__ == "__main__":
     # Example usage
