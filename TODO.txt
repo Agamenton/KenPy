@@ -1,0 +1,12 @@
+some hints on_hover for
+    - Save blinking
+    - Reload blinking
+    - mod has orange or red background
+
+better mod info - kinda done, probably could be better
+dark mode - kinda done, could use some improvements
+sort button - done, but improve the dialog with missing mods to allow to load them if in inactive list
+indicator if mod is missing prerequisites - kinda done with just color
+better check for new mods instead of periodic call
+
+fix do not check workshop mods if Kenshi folder is not managed by Steam but at the same time Steam Kenshi workshop folder exists
