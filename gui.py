@@ -681,13 +681,16 @@ class Gui:
     def on_keypress_listbox(self, event):
         """Handle keypress events in the listboxes"""
         widget = event.widget
+        if widget == self.active_mods_listbox:
+            selection = self.current_active_selection
+            listbox = self.active_mods_listbox
+        elif widget == self.inactive_mods_listbox:
+            selection = self.current_inactive_selection
+            listbox = self.inactive_mods_listbox
+        else:
+            return
+        
         if event.keysym == 'Return':
-            if widget == self.active_mods_listbox:
-                selection = self.current_active_selection
-                listbox = self.active_mods_listbox
-            elif widget == self.inactive_mods_listbox:
-                selection = self.current_inactive_selection
-                listbox = self.inactive_mods_listbox
             for i in selection:
                 mod_name = listbox.get(i)
                 if mod_name:
@@ -696,7 +699,9 @@ class Gui:
 
         # arrow up and down select mods
         elif event.keysym in ('Up', 'Down'):
+            selection.clear()
             self.on_mod_select(event)  # Display mod info on keypress
+            self.update_mod_colors(listbox, selection)
 
     # ======================
     # MOD INFORMATION DISPLAY
