@@ -1026,9 +1026,11 @@ class Gui:
 
     def clear_active_mods(self):
         """Clear the active mods list"""
-        self.manager.active_mods.clear()
-        self.update_mod_lists()
-        self.clear_info()
+        if self.manager.active_mods:
+            self.manager.active_mods.clear()
+            self.update_mod_lists()
+            self.clear_info()
+            self.start_blinking()
 
     def reset_modlist(self):
         """Reset the mod manager to its initial state"""
