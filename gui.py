@@ -700,6 +700,7 @@ class Gui:
         # arrow up and down select mods
         elif event.keysym in ('Up', 'Down'):
             selection.clear()
+            selection.extend(listbox.curselection())
             self.on_mod_select(event)  # Display mod info on keypress
             self.update_mod_colors(listbox, selection)
 
