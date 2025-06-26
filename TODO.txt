@@ -10,3 +10,6 @@ indicator if mod is missing prerequisites - kinda done with just color
 better check for new mods instead of periodic call
 
 fix do not check workshop mods if Kenshi folder is not managed by Steam but at the same time Steam Kenshi workshop folder exists
+proper save file parser to get the used mods
+
+a mod also has a list of "references", Iam not sure what is the purpose and it may be important to handle
