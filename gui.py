@@ -5,6 +5,7 @@ from tkinter import ttk
 import time
 import os
 import subprocess
+import sys
 
 from PIL import Image, ImageTk
 
@@ -55,6 +56,17 @@ def select_kenshi_folder():
     return None
 
 
+def resource_path(relative_path):
+    """ Get the absolute path to the resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return Path(os.path.join(base_path, relative_path))
+
+
 def start_gui(manager: Manager):
     """
     Start the GUI for the mod manager.
@@ -63,7 +75,7 @@ def start_gui(manager: Manager):
     root.title(APP_TITLE)
     
     # Load and set the icon
-    icon_path = Path(__file__).parent / "icon.ico"
+    icon_path = resource_path("icon.ico")
     if icon_path.exists():
         icon_image = Image.open(icon_path)
         icon_photo = ImageTk.PhotoImage(icon_image)
