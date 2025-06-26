@@ -24,7 +24,7 @@ You can check the TODO list.
 
 
 **DISCLAIMER:**\
-_The UI layout and name are inspired by RimPy for Rimworld but other than that it is in no way or form associated with it._
+_The UI layout and name are inspired by RimPy for Rimworld but other than that KenPy is in no way or form associated with RimPy._
 
 ---
 **FOR DEVELOPERS**\
@@ -36,4 +36,4 @@ The GUI is written with **tkinter** which I know does not produce great looking 
 The only third party package is **pillow** for image handling.\
 And I used **pyinstaller** to create the executable file.
 
-I am also aware that the quality of the code isn't great and it deserves a proper rewrite.
+I am also aware that the quality of the gui.py code isn't great and it deserves a proper rewrite.
