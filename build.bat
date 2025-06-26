@@ -15,6 +15,7 @@ pyinstaller.exe ^
     --noconsole ^
     --name "%nameOfMain%" ^
     --icon "%iconPath%" ^
+    --add-data "%iconPath%;." ^
     "%pathToMain%%nameOfMain%.py"
 copy "%pathToMain%dist\%nameOfMain%.exe" "%pathToMain%"
 
