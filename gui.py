@@ -127,7 +127,7 @@ class Gui:
         self.paths_frame.columnconfigure(1, weight=1)
 
         self.info_frame_width = 620
-        self.info_frame = Frame(self.frame, width=self.info_frame_width)
+        self.info_frame = Frame(self.frame, width=self.info_frame_width, borderwidth=2, relief="ridge")
         self.info_frame.grid(row=1, column=0, sticky=NSEW, padx=5, pady=5)
         self.info_frame.columnconfigure(0, weight=1)
         self.info_frame.rowconfigure(0, weight=1)
