@@ -13,3 +13,5 @@ fix do not check workshop mods if Kenshi folder is not managed by Steam but at t
 proper save file parser to get the used mods
 
 a mod also has a list of "references", Iam not sure what is the purpose and it may be important to handle
+
+Shift+arrowUp/Down should select multiple mods - somehow I failed to implement this (as of v1.0.0)
