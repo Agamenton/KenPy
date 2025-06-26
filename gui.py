@@ -1,6 +1,7 @@
 from pathlib import Path
 from tkinter import *
 from tkinter import messagebox, filedialog
+from tkinter import ttk
 import time
 import os
 import subprocess
@@ -19,6 +20,8 @@ COLOR_DARK_SECONDARY = "#FFFCD6"
 
 COLOR_LIGHT_PRIMARY = "#FFFFFF"
 COLOR_LIGHT_SECONDARY = "#000000"
+
+COLOR_LIGHT_SCROLLBAR_TR = "#B8B8B8"
 
 COLOR_ERROR = "#FF0000"  # red for errors
 COLOR_WARNING = "#FFA500"  # orange for warnings
@@ -60,7 +63,7 @@ def start_gui(manager: Manager):
     root.title(APP_TITLE)
     
     # Load and set the icon
-    icon_path = Path(__file__).parent / "assets" / "icon.png"
+    icon_path = Path(__file__).parent / "icon.ico"
     if icon_path.exists():
         icon_image = Image.open(icon_path)
         icon_photo = ImageTk.PhotoImage(icon_image)
@@ -132,6 +135,9 @@ class Gui:
         self.last_selected_active_mod_idx = None
         self.current_active_selection = []
 
+        self.ttk_style = ttk.Style(self.root)
+        self.ttk_style.theme_use("clam")
+
         self.listbox_selected_item_bg = COLOR_SELECT_DARK
 
         self.buttons_frame = Frame(self.frame)
@@ -140,6 +146,7 @@ class Gui:
         self.create_widgets()
 
         self.periodic_check_for_mods()
+        self.root.update()
 
     def create_widgets(self):
         # -------------------
@@ -165,7 +172,7 @@ class Gui:
         self.inactive_mods_listbox.grid(row=0, column=0, sticky=NSEW)
         
         # Add scrollbar
-        self.inactive_scrollbar = Scrollbar(self.inactive_list_container, command=self.inactive_mods_listbox.yview)
+        self.inactive_scrollbar = ttk.Scrollbar(self.inactive_list_container, command=self.inactive_mods_listbox.yview)
         self.inactive_scrollbar.grid(row=0, column=1, sticky=NS)
         self.inactive_mods_listbox.config(yscrollcommand=self.inactive_scrollbar.set)
         
@@ -200,7 +207,7 @@ class Gui:
         self.active_mods_listbox.grid(row=0, column=0, sticky=NSEW)
         
         # Add scrollbar
-        self.active_scrollbar = Scrollbar(self.active_list_container, command=self.active_mods_listbox.yview)
+        self.active_scrollbar = ttk.Scrollbar(self.active_list_container, command=self.active_mods_listbox.yview)
         self.active_scrollbar.grid(row=0, column=1, sticky=NS)
         self.active_mods_listbox.config(yscrollcommand=self.active_scrollbar.set)
         
@@ -302,21 +309,40 @@ class Gui:
             self.root.config(bg=COLOR_DARK_PRIMARY)
             self.mode_checkbox.config(fg=COLOR_DARK_SECONDARY, bg=COLOR_DARK_PRIMARY, selectcolor=COLOR_DARK_PRIMARY)
             self.listbox_selected_item_bg = COLOR_SELECT_DARK
+            self.ttk_style.configure(
+                'TScrollbar', 
+                background=COLOR_DARK_SECONDARY, 
+                troughcolor=COLOR_DARK_PRIMARY,
+                arrowcolor=COLOR_DARK_PRIMARY,
+                relief="groove"
+            )
         else:
             self.root.tk_setPalette(background=COLOR_LIGHT_PRIMARY, foreground=COLOR_LIGHT_SECONDARY)
             self.root.config(bg=COLOR_LIGHT_PRIMARY)
             self.mode_checkbox.config(fg=COLOR_LIGHT_SECONDARY, bg=COLOR_LIGHT_PRIMARY, selectcolor=COLOR_LIGHT_PRIMARY)
             self.listbox_selected_item_bg = COLOR_SELECT_LIGHT
+            self.ttk_style.configure(
+                'TScrollbar',
+                background=COLOR_LIGHT_PRIMARY,
+                troughcolor=COLOR_LIGHT_SCROLLBAR_TR,
+                arrowcolor=COLOR_LIGHT_SCROLLBAR_TR,
+                relief='raised'
+            )
+            
         self.active_mods_listbox.config(
             selectbackground=self.listbox_selected_item_bg
         )
+        self.active_scrollbar.config(style='TScrollbar')
+
         self.inactive_mods_listbox.config(
             selectbackground=self.listbox_selected_item_bg
         )
+        self.inactive_scrollbar.config(style='TScrollbar')
         
         # Update info frame background
         self.info_frame.config(bg=self.root.cget('bg'))
         self.root.update_idletasks()
+    
 
     # ======================
     # DRAG AND DROP FUNCTIONALITY
@@ -741,7 +767,7 @@ class Gui:
         description_text.insert(END, mod.description)
         description_text.config(state=DISABLED)  # Make it read-only
         description_text.grid(row=0, column=0, sticky=NSEW, padx=5, pady=5)
-        description_scrollbar = Scrollbar(description_frame, command=description_text.yview)
+        description_scrollbar = ttk.Scrollbar(description_frame, command=description_text.yview)
         description_scrollbar.grid(row=0, column=1, sticky=NS)
         description_text.config(yscrollcommand=description_scrollbar.set)
 
