@@ -17,3 +17,7 @@ a mod also has a list of "references", Iam not sure what is the purpose and it m
 Shift+arrowUp/Down should select multiple mods - somehow I failed to implement this (as of v1.0.0)
 
 remember in config the last window size used and then set it on load
+
+fix listbox width
+
+add ability to drag-and-drop mods between listboxes
