@@ -9,7 +9,7 @@ from PIL import Image, ImageTk
 
 from mod import Mod
 from manager import Manager, ModlistDiff
-from config import APP_NAME, Config
+from config import APP_NAME, Config, APP_TITLE
 from steam_library import open_steam_with_url, get_workshop_of, KENSHI_WORKSHOP_ID
 
 
@@ -57,7 +57,7 @@ def start_gui(manager: Manager):
     Start the GUI for the mod manager.
     """
     root = Tk()
-    root.title(APP_NAME)
+    root.title(APP_TITLE)
     
     # Load and set the icon
     icon_path = Path(__file__).parent / "assets" / "icon.png"

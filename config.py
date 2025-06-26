@@ -5,7 +5,14 @@ from pathlib import Path
 
 
 CFG_FILE = "config.json"
+
+
 APP_NAME = "KenPy"
+VERSION = "1.0.0"
+
+# I know I made it MIT licensed, but whatever, anyone can change it if they make their own version
+AUTHOR = "Miroslav Jurek (Agamenton)"
+APP_TITLE = f"{APP_NAME} - Kenshi Mod Manager - v{VERSION} by {AUTHOR}"
 
 
 CFG_KENSHI_DIR = "KENSHI_DIR"
