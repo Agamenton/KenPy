@@ -8,7 +8,7 @@ CFG_FILE = "config.json"
 
 
 APP_NAME = "KenPy"
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 # I know I made it MIT licensed, but whatever, anyone can change it if they make their own version
 AUTHOR = "Miroslav Jurek (Agamenton)"
