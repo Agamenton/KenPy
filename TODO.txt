@@ -21,3 +21,5 @@ remember in config the last window size used and then set it on load
 fix listbox width
 
 add ability to drag-and-drop mods between listboxes
+
+move build process to GitHub and connect FOSS code signing
