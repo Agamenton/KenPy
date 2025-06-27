@@ -953,7 +953,6 @@ class Gui:
 
     def export_modlist(self):
         """Export the current active mods to a text file"""
-        modlist_data = "\n".join(mod.path.name for mod in self.manager.active_mods)
         from tkinter import filedialog
         default_dir = Path(Config.get_config_dir(APP_NAME)) / "modlists"
         default_dir.mkdir(parents=True, exist_ok=True)
@@ -965,8 +964,7 @@ class Gui:
             initialfile=""
         )
         if file_path:
-            with open(file_path, 'w') as f:
-                f.write(modlist_data)
+            self.manager.export_modlist(file_path)
 
     def import_modlist(self):
         """Import a mod list from a text file"""
@@ -981,15 +979,20 @@ class Gui:
         )
         if file_path:
             prev_order = self.manager.active_mods.copy()
-            with open(file_path, 'r') as f:
-                mod_names = f.read().splitlines()
-                self.manager.active_mods.clear()
-                for mod_name in mod_names:
-                    mod = next((m for m in self.manager.all_mods if m.path.name == mod_name), None)
-                    if mod:
-                        self.manager.active_mods.append(mod)
+
+            missing_mods = self.manager.import_modlist(file_path)
+            
             if prev_order != self.manager.active_mods:
                 self.start_blinking()
+                
+            if missing_mods:
+                missing_mods_str = "\n".join(missing_mods)
+                messagebox.showwarning(
+                    "Missing Mods",
+                    f"The following mods are missing and will not be loaded:\n{missing_mods_str}\n\n"
+                    "Please check the mod requirements and resolve any issues."
+                )
+
             self.update_mod_lists()
     
     def import_modlist_from_save(self):

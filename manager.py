@@ -296,6 +296,33 @@ class Manager:
                 
         return (mods, not_found)
     
+    def import_modlist(self, file_path):
+        missing = []
+        if Path(file_path).exists():
+            with open(file_path, 'r', encoding="utf-8") as f:
+                mod_names = f.read().splitlines()
+                self.active_mods.clear()
+                for mod_name in mod_names:
+                    mod_name = mod_name.strip()
+                    mod = next((m for m in self.all_mods if m.path.name == mod_name), None)
+                    if mod:
+                        self.active_mods.append(mod)
+                    else:
+                        if mod_name:
+                            missing.append(mod_name)
+        else:
+            raise FileNotFoundError(f"Modlist file not found: {file_path}")
+        return missing
+    
+    def export_modlist(self, file_path):
+        """
+        Export the current active mods to a file.
+        :param file_path: Path to the file where the mod list will be saved.
+        """
+        with open(file_path, 'w', encoding="utf-8") as f:
+            for mod in self.active_mods:
+                f.write(mod.path.name + '\n')
+    
     def find_all_mods(self):
         all_mods = []
         kenshi_mods_folder = Path(self.kenshi_dir) / "mods"
