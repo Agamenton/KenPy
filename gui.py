@@ -11,7 +11,7 @@ from PIL import Image, ImageTk
 
 from mod import Mod
 from manager import Manager, ModlistDiff
-from config import APP_NAME, Config, APP_TITLE
+from config import APP_NAME, Config, APP_TITLE, WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT
 from steam_library import open_steam_with_url, get_workshop_of, KENSHI_WORKSHOP_ID
 
 
@@ -83,8 +83,8 @@ def start_gui(manager: Manager):
     
     gui = Gui(root, manager)
     root.protocol("WM_DELETE_WINDOW", root.quit)
-    root.geometry("1200x600")
-    root.minsize(800, 400)
+    root.geometry(f"{Config().window_width}x{Config().window_height}")
+    root.minsize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
     root.resizable(True, True)
 
     root.mainloop()
@@ -94,6 +94,7 @@ class Gui:
     def __init__(self, root: Tk, manager: Manager):
         self.root = root
         self.manager = manager
+        self.config = Config()
 
         self.needs_save = False
 
@@ -159,6 +160,8 @@ class Gui:
 
         self.periodic_check_for_mods()
         self.root.update()
+        self.resize_debounce_id = None
+        self.root.bind('<Configure>', self.on_resize)
 
     def create_widgets(self):
         # -------------------
@@ -273,7 +276,7 @@ class Gui:
         # -------------------
         # BUTTONS FRAME
         # Create buttons
-        self.dark_mode = BooleanVar(value=Config().dark_mode)
+        self.dark_mode = BooleanVar(value=self.config.dark_mode)
         self.mode_checkbox = Checkbutton(self.buttons_frame, text="Dark Mode", variable=self.dark_mode, command=self.on_mode_change)
         self.mode_checkbox.pack(fill=X, padx=5, pady=5)
 
@@ -308,6 +311,24 @@ class Gui:
         self.save_button.pack(fill=X, padx=5, pady=5, side=BOTTOM)
 
         self.on_mode_change()
+
+    def on_resize(self, event):
+        """Handle window resize events with debounce"""
+        # Only respond to main window resize events
+        if event.widget == self.root:
+            # Cancel previous scheduled save if it exists
+            if self.resize_debounce_id:
+                self.root.after_cancel(self.resize_debounce_id)
+            
+            # Schedule new save (300ms debounce)
+            self.resize_debounce_id = self.root.after(300, self.save_size)
+
+    def save_size(self):
+        """Save the current window size to the configuration"""
+        self.config.window_width = int(self.root.winfo_width())
+        self.config.window_height = self.root.winfo_height()
+        print(f"{self.root.winfo_width()}x{self.root.winfo_height()}")
+        self.config.save_win_size()
     
     def copy_to_clipboard(self, text):
         """Copy text to the clipboard"""
@@ -317,7 +338,7 @@ class Gui:
 
     def on_mode_change(self):
         """Toggle dark mode and update the configuration"""
-        Config().dark_mode = self.dark_mode.get()
+        self.config.dark_mode = self.dark_mode.get()
         if self.dark_mode.get():
             self.root.tk_setPalette(background=COLOR_DARK_PRIMARY, foreground=COLOR_DARK_SECONDARY)
             self.root.config(bg=COLOR_DARK_PRIMARY)
@@ -472,7 +493,7 @@ class Gui:
             widget.itemconfig(i, {'fg': widget.cget('fg')})
 
         # highlight the item under the cursor
-        highlight_color = COLOR_HOVER_DARK if Config().dark_mode else COLOR_HOVER_LIGHT
+        highlight_color = COLOR_HOVER_DARK if self.config.dark_mode else COLOR_HOVER_LIGHT
         if index >= 0:
             widget.itemconfig(index, {'fg': highlight_color})
     
@@ -1072,17 +1093,17 @@ class Gui:
     def stop_blinking(self):
         self.needs_save = False
         self.root.after_cancel(self.blink_save_button)
-        BG = COLOR_DARK_PRIMARY if Config().dark_mode else COLOR_LIGHT_PRIMARY
-        FG = COLOR_DARK_SECONDARY if Config().dark_mode else COLOR_LIGHT_SECONDARY
+        BG = COLOR_DARK_PRIMARY if self.config.dark_mode else COLOR_LIGHT_PRIMARY
+        FG = COLOR_DARK_SECONDARY if self.config.dark_mode else COLOR_LIGHT_SECONDARY
         self.save_button.config(bg=BG, fg=FG)
     
     def blink_save_button(self):
         """Blink the save button to indicate unsaved changes"""
         BG1 = COLOR_SAVE_BTN_BG_READY
-        BG2 = COLOR_DARK_PRIMARY if Config().dark_mode else COLOR_LIGHT_PRIMARY
+        BG2 = COLOR_DARK_PRIMARY if self.config.dark_mode else COLOR_LIGHT_PRIMARY
 
         FG1 = COLOR_DARK_SECONDARY
-        FG2 = COLOR_DARK_SECONDARY if Config().dark_mode else COLOR_LIGHT_SECONDARY
+        FG2 = COLOR_DARK_SECONDARY if self.config.dark_mode else COLOR_LIGHT_SECONDARY
 
         if self.needs_save:
             if self.save_button.cget('bg') == BG1:
@@ -1101,17 +1122,17 @@ class Gui:
     def stop_blinking_reload(self):
         self.needs_reload = False
         self.root.after_cancel(self.blink_reload_button)
-        BG = COLOR_DARK_PRIMARY if Config().dark_mode else COLOR_LIGHT_PRIMARY
-        FG = COLOR_DARK_SECONDARY if Config().dark_mode else COLOR_LIGHT_SECONDARY
+        BG = COLOR_DARK_PRIMARY if self.config.dark_mode else COLOR_LIGHT_PRIMARY
+        FG = COLOR_DARK_SECONDARY if self.config.dark_mode else COLOR_LIGHT_SECONDARY
         self.reset_button.config(bg=BG, fg=FG)
         
     def blink_reload_button(self):
         """Blink the reload button to indicate unsaved changes"""
         BG1 = COLOR_RELOAD_BTN_BG_READY
-        BG2 = COLOR_DARK_PRIMARY if Config().dark_mode else COLOR_LIGHT_PRIMARY
+        BG2 = COLOR_DARK_PRIMARY if self.config.dark_mode else COLOR_LIGHT_PRIMARY
 
         FG1 = COLOR_DARK_SECONDARY
-        FG2 = COLOR_DARK_SECONDARY if Config().dark_mode else COLOR_LIGHT_SECONDARY
+        FG2 = COLOR_DARK_SECONDARY if self.config.dark_mode else COLOR_LIGHT_SECONDARY
 
         if self.needs_reload:
             if self.reset_button.cget('bg') == BG1:

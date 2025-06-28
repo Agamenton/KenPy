@@ -17,7 +17,21 @@ APP_TITLE = f"{APP_NAME} - Kenshi Mod Manager - v{VERSION} by {AUTHOR}"
 
 CFG_KENSHI_DIR = "KENSHI_DIR"
 CFG_DARK_MODE = "DARK_MODE"
+CFG_WINDOW_WIDTH = "WINDOW_WIDTH"
+CFG_WINDOW_HEIGHT = "WINDOW_HEIGHT"
 
+WINDOW_DEFAULT_WIDTH = 1200
+WINDOW_DEFAULT_HEIGHT = 600
+
+WINDOW_MIN_WIDTH = 800
+WINDOW_MIN_HEIGHT = 400
+
+_default_config = {
+    CFG_KENSHI_DIR: "",  # Kenshi directory path
+    CFG_DARK_MODE: True,   # Dark mode setting
+    CFG_WINDOW_WIDTH: WINDOW_DEFAULT_WIDTH,  # Default window width
+    CFG_WINDOW_HEIGHT: WINDOW_DEFAULT_HEIGHT,  # Default window height
+}
 
 class Config:
     def __new__(cls):
@@ -35,6 +49,7 @@ class Config:
         """
         self._config_path = self.get_config_file_path(APP_NAME, CFG_FILE)
         self._config = self._load_config()
+        self.instance = self  # Ensure the instance is set for singleton access
 
     @property
     def kenshi_dir(self):
@@ -89,6 +104,44 @@ class Config:
             raise NotImplementedError("Unsupported operating system for configuration file path.")
         return config_dir
     
+    @property
+    def window_width(self):
+        """
+        Get the window width from the configuration.
+        If not set, return the default width.
+        """
+        return self._config.get(CFG_WINDOW_WIDTH, WINDOW_DEFAULT_WIDTH)
+    
+    @window_width.setter
+    def window_width(self, value):
+        """
+        Set the window width in the configuration.
+        """
+        if isinstance(value, int) and value >= WINDOW_MIN_WIDTH:
+            self._config[CFG_WINDOW_WIDTH] = value
+
+    @property
+    def window_height(self):
+        """
+        Get the window height from the configuration.
+        If not set, return the default height.
+        """
+        return self._config.get(CFG_WINDOW_HEIGHT, WINDOW_DEFAULT_HEIGHT)
+    
+    @window_height.setter
+    def window_height(self, value):
+        """
+        Set the window height in the configuration.
+        """
+        if isinstance(value, int) and value >= WINDOW_MIN_HEIGHT:
+            self._config[CFG_WINDOW_HEIGHT] = value
+    
+    def save_win_size(self):
+        """
+        Save the current window size to the configuration.
+        """
+        self._save_config()
+    
     @staticmethod
     def get_config_file_path(app_name, config_filename):
         """ Get the full path to the configuration file."""
@@ -105,7 +158,7 @@ class Config:
             config_path.parent.mkdir(parents=True, exist_ok=True)
             # Create an empty config file
             with open(config_path, 'w') as f:
-                json.dump({}, f, indent=4)
+                json.dump(_default_config, f, indent=4)
         
         with open(config_path, 'r') as f:
             return json.load(f)
