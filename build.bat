@@ -2,6 +2,7 @@
 
 set "pathToMain=%~dp0"
 set "nameOfMain=main"
+set "exeName=KenPy"
 set "iconPath=%pathToMain%icon.ico"
 
 call :deleteTempFiles
@@ -13,11 +14,13 @@ if exist "%pathToMain%%nameOfMain%.exe" (
 pyinstaller.exe ^
     --onefile ^
     --noconsole ^
-    --name "%nameOfMain%" ^
+    --noupx ^
+    --clean ^
+    --name "%exeName%" ^
     --icon "%iconPath%" ^
     --add-data "%iconPath%;." ^
     "%pathToMain%%nameOfMain%.py"
-copy "%pathToMain%dist\%nameOfMain%.exe" "%pathToMain%"
+copy "%pathToMain%dist\%exeName%.exe" "%pathToMain%"
 
 call :deleteTempFiles
 
