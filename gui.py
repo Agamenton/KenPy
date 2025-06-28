@@ -189,6 +189,7 @@ class Gui:
         self.inactive_mods_listbox.config(yscrollcommand=self.inactive_scrollbar.set)
         
         # Existing bindings
+        self.inactive_mods_listbox.bind("<B1-Leave>", lambda event: "break")
         self.inactive_mods_listbox.bind('<ButtonRelease-1>', self.handle_inactive_click)
         self.inactive_mods_listbox.bind('<Button-3>', self.handle_mod_rightclick)
         self.inactive_mods_listbox.bind('<Motion>', self.on_listbox_hover)
@@ -224,6 +225,7 @@ class Gui:
         self.active_mods_listbox.config(yscrollcommand=self.active_scrollbar.set)
         
         # Existing bindings
+        self.active_mods_listbox.bind("<B1-Leave>", lambda event: "break")
         self.active_mods_listbox.bind('<Button-3>', self.handle_mod_rightclick)
         self.active_mods_listbox.bind('<Motion>', self.on_listbox_hover)
         self.active_mods_listbox.bind('<Leave>', self.on_listbox_leave)
