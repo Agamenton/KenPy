@@ -13,6 +13,7 @@ from mod import Mod
 from manager import Manager, ModlistDiff
 from config import APP_NAME, Config, APP_TITLE, WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT
 from steam_library import open_steam_with_url, get_workshop_of, KENSHI_WORKSHOP_ID
+from dialog import mod_select_dialog
 
 
 # primary palette colors
@@ -147,6 +148,7 @@ class Gui:
         self.active_mods_frame.rowconfigure(2, weight=1)
         self.last_selected_active_mod_idx = None
         self.current_active_selection = []
+        self._prev_order = None  # Used in recursive Sort
 
         self.ttk_style = ttk.Style(self.root)
         self.ttk_style.theme_use("clam")
@@ -327,7 +329,6 @@ class Gui:
         """Save the current window size to the configuration"""
         self.config.window_width = int(self.root.winfo_width())
         self.config.window_height = self.root.winfo_height()
-        print(f"{self.root.winfo_width()}x{self.root.winfo_height()}")
         self.config.save_win_size()
     
     def copy_to_clipboard(self, text):
@@ -960,19 +961,40 @@ class Gui:
         self.start_blinking()
     
     def sort_active_mods(self):
-        prev_order = self.manager.active_mods.copy()
+        if self._prev_order is None:
+            self._prev_order = self.manager.active_mods.copy()
         missing_reqs = self.manager.sort_active_mods()
         if missing_reqs:
-            missing_mods_str = "\n".join(missing_reqs)
-            messagebox.showwarning(
-                "Missing Requirements",
-                f"The following mods are missing:\n{missing_mods_str}\n\n"
-                "Please check the mod requirements and resolve any issues."
+            right_list = []
+            for m in missing_reqs:
+                source_of_query = self.manager.required_by(m)
+                if source_of_query:
+                    right_list.extend(source_of_query)
+            
+            left_list, _ = self.manager.mods_by_names(missing_reqs)
+            modified_selection = mod_select_dialog(
+                self,
+                left_mods=left_list,
+                right_mods=right_list,
+                ok_btn_lbl="Apply and Sort",
+                cancel_btn_lbl= "Ignore and Sort"
             )
-        # if sorted_mods is not the same as current active mods, start blinking the save button
-        if prev_order != self.manager.active_mods:
-            self.start_blinking()
-        self.update_mod_lists()
+            if modified_selection is not None:
+                for m in source_of_query:
+                    mod_name = m.name if isinstance(m, Mod) else m
+                    if m not in modified_selection:
+                        self.toggle_mod(mod_name)
+                for m in modified_selection:
+                    mod_name = m.path.name if isinstance(m, Mod) else m
+                    if mod_name in missing_reqs:
+                        self.toggle_mod(mod_name)
+                self.sort_active_mods()
+        else:
+            # if sorted_mods is not the same as current active mods, start blinking the save button
+            if self._prev_order != self.manager.active_mods:
+                self.start_blinking()
+            self.update_mod_lists()
+            self._prev_order = None
 
     def export_modlist(self):
         """Export the current active mods to a text file"""
