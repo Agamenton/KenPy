@@ -371,6 +371,22 @@ class Manager:
         
         return missing_mods
     
+    def required_by(self, mod):
+        """
+        Get a list of mods that require the given mod.
+        :param mod: Mod instance to check.
+        :return: List of Mod instances that require the given mod.
+        """
+        if isinstance(mod, str):
+            if not mod.endswith(".mod"):
+                mod += ".mod"
+            mod = next((m for m in self.all_mods if m.path.name == mod), None)
+            
+        if not mod or not isinstance(mod, Mod):
+            raise ValueError("Mod must be a Mod instance or a valid mod name.")
+        
+        return [m for m in self.all_mods if mod.path.name in m.requires]
+    
 
 if __name__ == "__main__":
     # Example usage
