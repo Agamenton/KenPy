@@ -194,6 +194,22 @@ class Manager:
             name += ".mod"
         return next((m for m in self.all_mods if m.path.name == name), None)
     
+    def mods_by_names(self, names):
+        """
+        Get a list of mods by their names.
+        :param names: List of mod names (without .mod extension).
+        :return: [0]List of Mod instances. [1]List of mod names that were not found.
+        """
+        mods = []
+        not_found = []
+        for name in names:
+            mod = self.mod_by_name(name)
+            if mod:
+                mods.append(mod)
+            else:
+                not_found.append(name)
+        return mods, not_found
+    
     def toggle_mod(self, mod):
         """
         Toggle the active state of a mod.
@@ -381,7 +397,7 @@ class Manager:
             if not mod.endswith(".mod"):
                 mod += ".mod"
             mod = next((m for m in self.all_mods if m.path.name == mod), None)
-            
+
         if not mod or not isinstance(mod, Mod):
             raise ValueError("Mod must be a Mod instance or a valid mod name.")
         
