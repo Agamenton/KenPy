@@ -37,6 +37,7 @@ class _ModSelectDialog:
         self.dialog = Toplevel(self.master, width=400, height=300)
         self.dialog.title("Select Mods")
         self.dialog.protocol("WM_DELETE_WINDOW", self.on_close)
+        self.dialog.minsize(400, 300)
 
         self.left_frame = Frame(self.dialog)
         self.left_frame.pack(side=LEFT, padx=10, pady=10)
