@@ -40,14 +40,16 @@ class _ModSelectDialog:
         self.dialog.minsize(400, 300)
 
         self.left_frame = Frame(self.dialog)
-        self.left_frame.pack(side=LEFT, padx=10, pady=10)
+        self.left_frame.pack(side=LEFT, padx=10, pady=10, fill=BOTH, expand=True)
 
         self.right_frame = Frame(self.dialog)
-        self.right_frame.pack(side=RIGHT, padx=10, pady=10)
+        self.right_frame.pack(side=RIGHT, padx=10, pady=10, fill=BOTH, expand=True)
+
         self.left_checkboxes = []
         self.right_checkboxes = []
         self.create_checkboxes(self.left_frame, self.left_mods, self.left_checkboxes)
         self.create_checkboxes(self.right_frame, self.right_mods, self.right_checkboxes, checked=True)
+
         self.ok_button = Button(self.dialog, text=self.ok_btn_lbl, command=self.on_ok)
         self.ok_button.pack(side=LEFT, padx=10, pady=10)
         self.cancel_button = Button(self.dialog, text=self.cancel_btn_lbl, command=self.on_cancel)
