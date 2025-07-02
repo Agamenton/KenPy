@@ -58,7 +58,7 @@ class _ModSelectDialog:
         label_side = RIGHT if right else LEFT
         ceckbox_side = LEFT if right else RIGHT
         for item in items:
-            item_frame = Frame(frame)
+            item_frame = Frame(frame, borderwidth=2, relief="ridge")
             item_frame.pack(anchor=W, padx=5, pady=2)
             var = BooleanVar(value=checked)
             label = Label(item_frame, text=item.name if isinstance(item, Mod) else item)
