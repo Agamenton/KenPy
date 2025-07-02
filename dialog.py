@@ -54,14 +54,17 @@ class _ModSelectDialog:
         self.cancel_button.pack(side=RIGHT, padx=10, pady=10)
 
     def create_checkboxes(self, frame, items, checkboxes, checked=False):
+        right = True if frame == self.right_frame else False
+        label_side = RIGHT if right else LEFT
+        ceckbox_side = LEFT if right else RIGHT
         for item in items:
             item_frame = Frame(frame)
             item_frame.pack(anchor=W, padx=5, pady=2)
             var = BooleanVar(value=checked)
             label = Label(item_frame, text=item.name if isinstance(item, Mod) else item)
-            label.pack(side=LEFT)
+            label.pack(side=label_side)
             checkbox = Checkbutton(item_frame, variable=var, fg="black")
-            checkbox.pack(side=RIGHT)
+            checkbox.pack(side=ceckbox_side)
             checkboxes.append((item, var))
 
     def on_ok(self):
