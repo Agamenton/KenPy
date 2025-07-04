@@ -37,12 +37,14 @@ class _ModSelectDialog:
         self.dialog = Toplevel(self.master, width=400, height=300)
         self.dialog.title("Select Mods")
         self.dialog.protocol("WM_DELETE_WINDOW", self.on_close)
-        self.dialog.minsize(400, 300)
 
-        self.left_frame = Frame(self.dialog)
+        self.main_frame = Frame(self.dialog)
+        self.main_frame.pack(fill=BOTH, expand=True)
+
+        self.left_frame = Frame(self.main_frame)
         self.left_frame.pack(side=LEFT, padx=10, pady=10, fill=BOTH, expand=True)
 
-        self.right_frame = Frame(self.dialog)
+        self.right_frame = Frame(self.main_frame)
         self.right_frame.pack(side=RIGHT, padx=10, pady=10, fill=BOTH, expand=True)
 
         self.left_checkboxes = []
@@ -50,9 +52,9 @@ class _ModSelectDialog:
         self.create_checkboxes(self.left_frame, self.left_mods, self.left_checkboxes)
         self.create_checkboxes(self.right_frame, self.right_mods, self.right_checkboxes, checked=True)
 
-        self.ok_button = Button(self.dialog, text=self.ok_btn_lbl, command=self.on_ok)
+        self.ok_button = Button(self.right_frame, text=self.ok_btn_lbl, command=self.on_ok)
         self.ok_button.pack(side=LEFT, padx=10, pady=10)
-        self.cancel_button = Button(self.dialog, text=self.cancel_btn_lbl, command=self.on_cancel)
+        self.cancel_button = Button(self.right_frame, text=self.cancel_btn_lbl, command=self.on_cancel)
         self.cancel_button.pack(side=RIGHT, padx=10, pady=10)
 
     def create_checkboxes(self, frame, items, checkboxes, checked=False):
