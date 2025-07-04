@@ -40,6 +40,8 @@ class Config:
         """
         if not hasattr(cls, 'instance'):
             cls.instance = super(Config, cls).__new__(cls)
+            # Initialize the instance ONLY when it's first created
+            cls.instance._initialized = False # A flag to ensure init runs only once
         return cls.instance
 
     def __init__(self):
@@ -47,9 +49,10 @@ class Config:
         Initialize the Config instance.
         Load the configuration from the file or create a new one if it doesn't exist.
         """
-        self._config_path = self.get_config_file_path(APP_NAME, CFG_FILE)
-        self._config = self._load_config()
-        self.instance = self  # Ensure the instance is set for singleton access
+        if not hasattr(self, '_initialized') or not self._initialized:
+            self._config_path = self.get_config_file_path(APP_NAME, CFG_FILE)
+            self._config = self._load_config()
+            self._initialized  = True
 
     @property
     def kenshi_dir(self):
